@@ -1,8 +1,8 @@
 ---
-name: [Questopm]:
+name: Question
 about: 質問したい内容の記載をお願いします
 title: ''
-labels: 'question'
+labels: question
 assignees: ''
 
 ---
