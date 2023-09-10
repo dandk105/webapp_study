@@ -1,26 +1,24 @@
 # WebAppを勉強するためのレポジトリ
 
-## フォルダ構成
-backend/
+## フォルダ・ファイル構成
+
+### backend/
 
 go　言語で書かれているAPIサーバーです
 
 Docker image にビルドします
 
-frontend/
+詳細はREADME.mdまたは[wiki](https://github.com/dandk105/webapp_study/wiki/%E3%81%93%E3%81%AE%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%83%88%E3%81%AE%E9%96%8B%E7%99%BA%E7%92%B0%E5%A2%83%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6#frontend)を確認してください
 
-create-react-app のtypescriptをベースに作成されている
-フロントエンドサーバーです
-
-Docker imageにビルドします
-
-test-vue/
+### frontend/
 
 vueのテンプレートアプリを利用したフロントエンドサーバーです
 
 Docker imageにビルドします
 
-docer-compose.yml
+詳細はREADME.mdまたは[wiki](https://github.com/dandk105/webapp_study/wiki/%E3%81%93%E3%81%AE%E3%83%97%E3%83%AD%E3%82%B8%E3%82%A7%E3%82%AF%E3%83%88%E3%81%AE%E9%96%8B%E7%99%BA%E7%92%B0%E5%A2%83%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6#frontend)を確認してください
+
+### docer-compose.yml
 
 backendのDocker image
 frontendのDocker image
