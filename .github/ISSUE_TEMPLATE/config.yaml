@@ -1,0 +1,28 @@
+name: 質問テンプレート
+description: issueで質問をするときのテンプレート
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        質問についての記載は下記の項目を埋めてください。利用しづらい場合は、教えてください。
+  - type: textarea
+    id: question1
+    attributes:
+      label: 知りたいこと
+      description: 質問したい内容を書いてください
+      value: "例: markdownの書き方を教えてください"
+    validations:
+      required: false
+  - type: textarea
+    id: question2
+    attributes:
+      label: わからないこと
+      description: わからない内容を書いてください
+      value: "例: markdownでリンクを記載する書き方を教えてください"
+    validations:
+      required: false
+  - type: markdown
+    attributes:
+      value: "その他他に必要な情報があれば書いてください"
