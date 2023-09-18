@@ -30,3 +30,8 @@ frontendのDocker image
 開発環境の詳細についてはwikiを確認してください
 
 [wiki](https://github.com/dandk105/webapp_study/wiki)
+
+### その他
+今回この学習で作成するのは、予約システムです
+
+ある宿泊施設Aに対して、ユーザーが予約を行うことができるシステムという仮定で作成しています
