@@ -9,9 +9,9 @@ RUN go build -o myapp
 FROM alpine:3.18
 
 # Set the POSTGRES_USER, POSTGRES_PASSWORD, and POSTGRES_DB environment variables
-ENV POSTGRES_USER=myuser
-ENV POSTGRES_PASSWORD=mypassword
-ENV POSTGRES_DB=mydatabase
+ENV DB_USER=myuser
+ENV DB_PASSWORD=mypassword
+ENV DB_NAME=mydatabase
 
 
 COPY --from=builder /app/myapp /usr/local/bin/myapp
