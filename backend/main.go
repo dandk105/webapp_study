@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 // グローバルにハンドラのマップを定義
@@ -25,7 +27,7 @@ func main() {
 	db := initDB()
 
 	// /api/greet へのアクセス時に greetHandler を呼び出す
-	addRoute("/api/greet", "Greet API", greetHandler)
+	addRoute("/api/greet", "Greet API", greetHandlerWrapper(db))
 
 	// サーバー起動時にハンドラの一覧をログに表示
 	log.Println("Registered routes:")
@@ -33,8 +35,12 @@ func main() {
 		log.Printf("%s: %s\n", route, desc)
 	}
 
-	log.Println("Starting server on :5000")
-	log.Fatal(http.ListenAndServe(":5000", nil)) // 8080ポートでサーバーを起動. エラーが発生した時のみログに出力
+	port := os.Getenv("PORT")
+
+	log.Printf("Starting server on :%s\n", port)
+	// 環境変数PORTでサーバーを起動. エラーが発生した時のみログに出力
+	l := ":" + port
+	log.Fatal(http.ListenAndServe(l, nil))
 
 }
 
@@ -68,7 +74,7 @@ func greetHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// データベースからデータを取得する
-	rows, err := db.Query("SELECT message FROM greetings")
+	rows, err := db.Query("SELECT name FROM USERS WHERE name = $1", name)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -77,4 +83,11 @@ func greetHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	response := fmt.Sprintf("Hello, %s!", name)
 	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 	w.Write([]byte(response))
+}
+
+// greetHandlerをhttp.HandlerFuncに変換する
+func greetHandlerWrapper(db *sql.DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		greetHandler(w, r, db)
+	}
 }

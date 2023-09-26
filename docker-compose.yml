@@ -5,6 +5,8 @@ services:
   backend:
     build:
       context: ./backend
+    env_file:
+      - .example.env
     ports:
       - "8080:5000"
     depends_on:
