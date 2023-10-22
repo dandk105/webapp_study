@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,19 +10,8 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/rs/cors"
 )
-
-// グローバルにハンドラのマップを定義
-var routes = make(map[string]string)
-
-// ルートを追加する関数
-// pattern: ルートのパターン
-// description: ルートの説明
-// handlerFunc: ルートにアクセスした時に呼び出されるハンドラ関数
-func addRoute(pattern string, description string, handlerFunc http.HandlerFunc) {
-	routes[pattern] = description
-	http.HandleFunc(pattern, handlerFunc)
-}
 
 type User struct {
 	// IDはUUIDになるから、stringでまとめてしまうのはいささか乱雑な気がする
@@ -30,27 +20,52 @@ type User struct {
 	Birthday time.Time
 }
 
+type UsersResponse struct {
+	Message string `json:"message"`
+}
+
+type StatusResponse struct {
+	Status string `json:"status"`
+}
+
 func main() {
 	// データベースを初期化
 	db := initDB()
 	defer initDB()
 
-	// /api/greet へのアクセス時に greetHandler を呼び出す
-	addRoute("/api/greet", "Greet API", greetHandlerWrapper(db))
-	addRoute("/api/status", "Status Check API", statuscheckHandlerWrapper(db))
+	HandlersDescription := map[string]string{
+		"users":  "/api/users",
+		"status": "/api/status",
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc(HandlersDescription["users"], func(w http.ResponseWriter, r *http.Request) {
+		getUserslistHandler(w, r, db)
+	})
+	mux.HandleFunc(HandlersDescription["status"], func(w http.ResponseWriter, r *http.Request) {
+		statuscheckHandler(w, r, db)
+	})
+
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:5173"},
+		Debug:          true,
+	})
+
+	handler := c.Handler(mux)
 
 	// サーバー起動時にハンドラの一覧をログに表示
 	log.Println("Registered routes:")
-	for route, desc := range routes {
-		log.Printf("%s: %s\n", route, desc)
-	}
+
+	log.Printf("%s: %s\n", HandlersDescription["users"], "Get all users list")
+	log.Printf("%s: %s\n", HandlersDescription["status"], "Get server status")
 
 	port := os.Getenv("PORT")
 
 	log.Printf("Starting server on :%s\n", port)
 	// 環境変数PORTでサーバーを起動. エラーが発生した時のみログに出力
 	l := ":" + port
-	log.Fatal(http.ListenAndServe(l, nil))
+	//ここの行を分離しないと、エラーになった時に常にサーバーがOS.Exit(1)で終了してしまう
+	log.Fatal(http.ListenAndServe(l, handler))
 
 }
 
@@ -82,8 +97,8 @@ func initDB() *sql.DB {
 	return db
 }
 
-func greetHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	// GETメソッドのみを受け入れる
+func getUserslistHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	// GETメソッドを受け入れる
 	if r.Method != http.MethodGet {
 		http.Error(w, "Only GET method is supported", http.StatusMethodNotAllowed)
 		return
@@ -109,6 +124,7 @@ func greetHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		if err := rows.Scan(&user.ID, &user.Name, &user.Birthday); err != nil {
 			log.Fatal(err)
 		}
+		// 取得したユーザーリストの情報を全てUser型のスライスに格納し、usersに代入
 		users = append(users, user)
 	}
 
@@ -118,11 +134,14 @@ func greetHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		log.Print(err)
 	}
 
-	response := fmt.Sprintf("Hello, %s!", name)
+	// users: {"id":"",...}  というjson形式で返すために加工する必要がある
+	response := "users"
 	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
+	// レスポンスを返す
 	w.Write([]byte(response))
 }
 
+// TODO: handlerを全て別のファイルに分離した方が良さそう
 func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Only GET method is supported", http.StatusMethodNotAllowed)
@@ -131,24 +150,36 @@ func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	dbErr := db.Ping()
 	if dbErr == nil {
-		w.Write([]byte("OK"))
+		// DBへの接続が成功した時はJSON形式でstatus:OK を返す
+		response := StatusResponse{Status: "OK"}
+		jsonResponse, err := json.Marshal(response)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// レスポンスを返す
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResponse)
 	} else {
 		http.Error(w, "DB connection error", http.StatusInternalServerError)
 	}
+	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 
 }
 
-// greetHandlerをhttp.HandlerFuncに変換する
+// getUserslistHandlerをhttp.HandlerFuncに変換する
 // dbとhttp.HandlerFuncを受け取り、http.HandlerFuncを返す方が
 // 結合度が下がって他のハンドラーにも使うことができそう
-func greetHandlerWrapper(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		greetHandler(w, r, db)
-	}
-}
+// func getUserslistHandlerWrapper(db *sql.DB) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		getUserslistHandler(w, r, db)
+// 	}
+// }
 
-func statuscheckHandlerWrapper(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		statuscheckHandler(w, r, db)
-	}
-}
+// func statuscheckHandlerWrapper(db *sql.DB) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		statuscheckHandler(w, r, db)
+// 	}
+// }
