@@ -168,18 +168,3 @@ func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 
 }
-
-// getUserslistHandlerをhttp.HandlerFuncに変換する
-// dbとhttp.HandlerFuncを受け取り、http.HandlerFuncを返す方が
-// 結合度が下がって他のハンドラーにも使うことができそう
-// func getUserslistHandlerWrapper(db *sql.DB) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		getUserslistHandler(w, r, db)
-// 	}
-// }
-
-// func statuscheckHandlerWrapper(db *sql.DB) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		statuscheckHandler(w, r, db)
-// 	}
-// }
