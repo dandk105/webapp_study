@@ -6,7 +6,7 @@ services:
     build:
       context: ./backend
     env_file:
-      - .example.env
+      - .example.envrc
     ports:
       - "8080:5000"
     depends_on:
@@ -14,7 +14,7 @@ services:
   db:
     image: postgres:15-bullseye
     env_file:
-      - .example.env
+      - .example.envrc
     ports:
       - "5432:5432"
     volumes:

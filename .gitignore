@@ -1,1 +1,7 @@
 .vscode/
+
+# file of environment variables
+.envrc
+.env
+
+.DS_Store
