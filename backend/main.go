@@ -13,6 +13,7 @@ import (
 	"github.com/rs/cors"
 )
 
+// 予約システムのユーザー情報を格納する構造体
 type User struct {
 	// IDはUUIDになるから、stringでまとめてしまうのはいささか乱雑な気がする
 	ID       string
@@ -20,8 +21,28 @@ type User struct {
 	Birthday time.Time
 }
 
+// 予約システムの部屋情報を格納する構造体
+type Room struct {
+	ID       string
+	Name     string
+	Capacity int
+}
+
+// 予約システムの予約情報を格納する構造体
+type Reservation struct {
+	ID        string
+	UserID    string
+	RoomID    string
+	StartTime time.Time
+	EndTime   time.Time
+}
+
+type DBClient struct {
+	DB *sql.DB
+}
+
 type UsersResponse struct {
-	Message string `json:"message"`
+	Users User `json:"users"`
 }
 
 type StatusResponse struct {
@@ -34,8 +55,9 @@ func main() {
 	defer initDB()
 
 	HandlersDescription := map[string]string{
-		"users":  "/api/users",
-		"status": "/api/status",
+		"users":    "/api/users",
+		"status":   "/api/status",
+		"userData": "/api/userdata",
 	}
 
 	mux := http.NewServeMux()
@@ -45,7 +67,11 @@ func main() {
 	mux.HandleFunc(HandlersDescription["status"], func(w http.ResponseWriter, r *http.Request) {
 		statuscheckHandler(w, r, db)
 	})
+	mux.HandleFunc(HandlersDescription["userData"], func(w http.ResponseWriter, r *http.Request) {
+		getUserDataHandler(w, r, db)
+	})
 
+	// CORSの設定をしている部分。AllowsOriginsには許可するオリジンとしてフロントエンドのドメインを指定する
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:5173"},
 		Debug:          true,
@@ -58,6 +84,7 @@ func main() {
 
 	log.Printf("%s: %s\n", HandlersDescription["users"], "Get all users list")
 	log.Printf("%s: %s\n", HandlersDescription["status"], "Get server status")
+	log.Printf("%s: %s\n", HandlersDescription["userData"], "Get user data")
 
 	port := os.Getenv("PORT")
 
@@ -70,6 +97,7 @@ func main() {
 }
 
 // dbクライアントを初期化する関数
+// 環境変数の読み込みとデータベースへの接続を行う
 func initDB() *sql.DB {
 	dbUser := os.Getenv("DB_USER")
 	dbName := os.Getenv("DB_NAME")
@@ -94,6 +122,16 @@ func initDB() *sql.DB {
 	}
 	log.Print("Successfully connected!")
 
+	/*
+		/Will 何れしたいDB周りのリファクタリングについて記載
+					type DBClient struct {
+						DB *sql.DB
+					}
+
+					定義した構造を初期化
+					DBClient := &DBClient{DB: db}
+					return DBClient, nil
+	*/
 	return db
 }
 
@@ -102,11 +140,6 @@ func getUserslistHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Only GET method is supported", http.StatusMethodNotAllowed)
 		return
-	}
-
-	name := r.URL.Query().Get("name")
-	if name == "" {
-		name = "World"
 	}
 
 	// データベースからデータを取得する
@@ -134,8 +167,10 @@ func getUserslistHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		log.Print(err)
 	}
 
-	// users: {"id":"",...}  というjson形式で返すために加工する必要がある
-	response := "users"
+	// users: {"id":"",...}  というjson形式で返すために加工する必要がある現在は下記の形で返している
+	// users: %s[{a938f06c-3f90-4dc2-97df-0f8dd456eba9 Alice 1990-01-01 00:00:00 +0000 +0000} {ed99e003-349e-42b7-ae49-74594c7faa29 Bob 1992-05-15 00:00:00 +0000 +0000} {fc73ce46-bbda-476b-b991-3c4fe63e4af5 Charlie 1988-11-23 00:00:00 +0000 +0000}]
+
+	response := fmt.Sprint("users: %s", users)
 	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 	// レスポンスを返す
 	w.Write([]byte(response))
@@ -156,7 +191,6 @@ func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		if err != nil {
 			log.Print(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
 		}
 
 		// レスポンスを返す
@@ -167,4 +201,57 @@ func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 
+}
+
+func getUserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	// GETメソッドを受け入れる
+	if r.Method != http.MethodGet {
+		http.Error(w, "Only GET method is supported", http.StatusMethodNotAllowed)
+		return
+	}
+
+	name := r.URL.Query().Get("name")
+	// "name"が空の時はデフォルトのユーザー情報を返す所謂疎通確認用の処理
+	// switch文で書いた方が良さそう
+	if name == "" {
+		var user User
+		user.Name = "World"
+		user.Birthday = time.Now()
+		user.ID = "1"
+		jsonresponse, err := json.Marshal(user)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		w.Write(jsonresponse)
+	} else {
+		// データベースからデータを取得する
+		// TODO: URLのクエリーによって取得するデータを変えるようにする
+		// 現在はUSERSテーブルの全てのデータを取得しているからよろしくない
+		rows, err := db.Query("SELECT * FROM USERS WHERE NAME = $1", name)
+		if err != nil {
+			log.Print(err)
+		}
+		defer rows.Close()
+
+		var user User
+		for rows.Next() {
+			if err := rows.Scan(&user.ID, &user.Name, &user.Birthday); err != nil {
+				log.Print(err)
+			}
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Print(err)
+		}
+
+		jsonresponse, err := json.Marshal(user)
+		if err != nil {
+			log.Print(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
+		// レスポンスを返す
+		w.Write(jsonresponse)
+	}
 }

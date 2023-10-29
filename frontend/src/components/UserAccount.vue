@@ -1,3 +1,12 @@
+<template>
+  <div class="useraccount">
+    <h1>User Account</h1>
+    <div>ID: {{ account.ID }}</div>
+    <div>Name: {{ account.Name }}</div>
+    <div>Birthday: {{ account.Birthday }}</div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
 // TIPS：user_nameはログインしているユーザーの名前を想定
@@ -10,8 +19,9 @@ type UserAccount = {
 
 // propsでuser_nameまたは、idを受け取る様にして、その値で
 // ユーザーの情報を取得するようにする
-const user_name = ref<string>('Bob')
-const account = ref<UserAccount>({ID: 0, Name: '', Birthday: new Date()})
+const user_name = ref<string>('Charlie')
+let a = {ID: 0, Name: '', Birthday: new Date()}
+const account = ref<UserAccount>(a)
 const user_account_url:string = import.meta.env.VITE_BASE_API_URL+'/api/userdata?name='+user_name.value
 watchEffect(async () => {
   const response = await fetch(user_account_url)
@@ -23,12 +33,3 @@ watchEffect(async () => {
 
 
 </script>
-
-<template>
-  <div class="useraccount">
-    <h1>User Account</h1>
-    <div>ID: {{ account.ID }}</div>
-    <div>Name: {{ account.Name }}</div>
-    <div>Birthday: {{ account.Birthday }}</div>
-  </div>
-</template>

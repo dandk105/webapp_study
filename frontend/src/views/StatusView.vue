@@ -35,12 +35,17 @@ export  default {
           throw new Error(response.statusText)
         }
         const data = await response.json()
+        // このthisはvueのインスタンスを指していて, dataのstatusを参照している
+        // リクエストの結果を反映させるためには、this.statusに代入する必要がある
+        this.status = data.status
         console.log(data)
       } catch (error) {
         console.log(error)
       }
+    },
+    mounted() {
+      this.getData()
     }
-    
   }
 }
 </script>

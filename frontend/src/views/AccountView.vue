@@ -1,9 +1,10 @@
 <template>
   <div class="status">
-    <h1>This is an status page</h1>
+    <h1>This is an user account page</h1>
     <button @focus="getData">Reload</button>
     <div>Account data = {{ account.ID }} {{ account.Name }} {{ account.Birthday }}</div>
-  <UserAccount />
+    <UserList />
+    <UserAccount />
   </div>
 </template>
 
@@ -19,6 +20,7 @@
 
 <script lang="ts">
 import UserAccount from '@/components/UserAccount.vue';
+import UserList from '@/components/UserList.vue';
 
 export  default {
     data() {
@@ -51,6 +53,6 @@ export  default {
             this.getData();
         }
     },
-    components: { UserAccount }
+    components: { UserAccount, UserList }
 }
 </script>
