@@ -6,28 +6,39 @@ import (
 	"time"
 )
 
-// 予約システムのユーザー情報を格納する構造体
+// ユーザー情報を格納する構造体
 type User struct {
 	// IDはUUIDになるから、stringでまとめてしまうのはいささか乱雑な気がする
-	ID       string
-	Name     string
-	Birthday time.Time
+	ID          string
+	Name        string
+	Birthday    time.Time
+	DeleateFlag bool
 }
 
-// 予約システムの部屋情報を格納する構造体
+// 部屋情報を格納する構造体
 type Room struct {
 	ID       string
 	Name     string
 	Capacity int
 }
 
-// 予約システムの予約情報を格納する構造体
+// 予約情報を格納する構造体
 type Reservation struct {
-	ID        string
-	UserID    string
+	ID string
+	// User structのID
+	UserID string
+	// Room structのID
 	RoomID    string
 	StartTime time.Time
 	EndTime   time.Time
+}
+
+// ホテル情報を格納する構造体
+type Hotel struct {
+	ID      string
+	Name    string
+	Address string
+	RoomID  string
 }
 
 type UsersResponse struct {
