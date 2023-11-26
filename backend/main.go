@@ -122,8 +122,6 @@ func initDB() *sql.DB {
 	}
 
 	// データベースに接続できるか確認
-	// THINK: DBへのpingが失敗した時のステータスを保持する変数がpingErrなのは
-	// ちょっと分かりづらい気がする
 	pingErr := db.Ping()
 	if pingErr != nil {
 		log.Print(pingErr)
