@@ -14,11 +14,16 @@ type UserDataAccesser struct {
 	ctx      context.Context
 }
 
-func (handler *UserDataAccesser) GetUserdata() {
-	handler.dbclient.CreateConnection()
-	db := handler.dbclient.DataBaseConnection
-	db.Query("SELECT * FROM users where id = %d", handler.user.Id)
+func (accesser *UserDataAccesser) GetUserdata() {
+	accesser.dbclient.CreateConnection()
+	db := accesser.dbclient.DataBaseConnection
+	db.Query("SELECT * FROM users where id = %d", accesser.user.Id)
 }
-func (user *UserDataAccesser) CreateUserdata() {}
+func (accesser *UserDataAccesser) CreateUserdata() {
+	accesser.dbclient.CreateConnection()
+	db := accesser.dbclient.DataBaseConnection
+	db.Query("SELECT * FROM users where id = %d", accesser.user.Id)
+	db.Query("INSERT INTO users (name, birthday) VALUES (%s, %s)", accesser.user.Name, accesser.user.Birthday)
+}
 func (user *UserDataAccesser) DeleteUserdata() {}
 func (user *UserDataAccesser) UpdateUserdata() {}

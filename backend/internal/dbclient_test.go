@@ -71,7 +71,7 @@ func TestCreateConnection(t *testing.T) {
 func TestSetDBClientLogger(t *testing.T) {
 	// Set up test environment variables
 	dbc := &Client{}
-	dbc.SetDBClientLogger()
+	dbc.SetDataBaseClientLogger()
 	assert.NotNil(t, dbc.logger)
 	dbc.logger.Print("Test")
 }
