@@ -37,6 +37,7 @@ jobs:
           # Jekyll build のアクションで使われているRubyのバージョンは2.8 とかで
           # 利用しているテーマのバージョンがそれ以上なのでテーマのビルドがされないため、それを回避するために3.1を指定している
           ruby-version: '3.1'
+          bundler-cache: true
       - name: Setup Pages
         id: setup-pages
         uses: actions/configure-pages@v4
@@ -49,6 +50,8 @@ jobs:
           JEKYLL_ENV: production
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
+        with:
+          path: ./_site
 
   # Deployment job
   deploy:
