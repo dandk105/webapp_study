@@ -28,17 +28,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # checkout acssionsはパスを$GITHUB_WORKSPACEで設定するので、
+          # その配下にあるpagesディレクトリを指定する必要がある
+          path: ./pages
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
+          # Jekyll build のアクションで使われているRubyのバージョンは2.8 とかで
+          # 利用しているテーマのバージョンがそれ以上なのでテーマのビルドがされないため、それを回避するために3.1を指定している
           ruby-version: '3.1'
           bundler-cache: true
-          # Increment this number if you need to re-download cached gems
           cache-version: 0
       - name: Setup Pages
         id: setup-pages
         uses: actions/configure-pages@v4
       - name: Build with Jekyll
+        # ここで指定するパスは、checkoutで指定したpagesディレクトリになる
         run: bundle exec jekyll build --baseurl "${{ steps.setup-pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
