@@ -1,0 +1,31 @@
+name: Golang lint and format
+
+on:
+  pull_repuest:
+    branches:
+      - main
+
+concurrency:
+  group: "golang"
+  cancel-in-progress: false
+
+jobs:
+  # lint and format
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+	  path: ./backend
+      - name: Setup Backend
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21.2'
+      - uses: dominikh/staticcheck-action@v1.2.0
+	with:
+	  install-go: false
+
