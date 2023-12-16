@@ -37,13 +37,13 @@ jobs:
           # Jekyll build のアクションで使われているRubyのバージョンは2.8 とかで
           # 利用しているテーマのバージョンがそれ以上なのでテーマのビルドがされないため、それを回避するために3.1を指定している
           ruby-version: '3.1'
-          bundler-cache: true
-          cache-version: 0
       - name: Setup Pages
         id: setup-pages
         uses: actions/configure-pages@v4
+      - name: Install dependencies
+        # Jekyll を実行する為に、bundle install をして依存関係を全てインストールする
+        run: bundle install
       - name: Build with Jekyll
-        # ここで指定するパスは、checkoutで指定したpagesディレクトリになる
         run: bundle exec jekyll build --baseurl "${{ steps.setup-pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
