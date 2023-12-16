@@ -5,3 +5,6 @@
 .env
 
 .DS_Store
+
+# file of intelliJ
+.idea
