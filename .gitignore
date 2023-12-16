@@ -5,6 +5,3 @@
 .env
 
 .DS_Store
-
-# file of inteliJ
-.idea
