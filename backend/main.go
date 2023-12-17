@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -37,6 +38,7 @@ type Reservation struct {
 	EndTime   time.Time
 }
 
+// DBのクライアント情報を格納する構造体
 type DBClient struct {
 	DB *sql.DB
 }
@@ -70,10 +72,13 @@ func main() {
 	mux.HandleFunc(HandlersDescription["userData"], func(w http.ResponseWriter, r *http.Request) {
 		getUserDataHandler(w, r, db)
 	})
+	mux.HandleFunc("/api/createuserdata", func(w http.ResponseWriter, r *http.Request) {
+		createUserDataHandler(w, r, db)
+	})
 
 	// CORSの設定をしている部分。AllowsOriginsには許可するオリジンとしてフロントエンドのドメインを指定する
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3000", "http://localhost:5173"},
+		AllowedOrigins: []string{"http://localhost:*"},
 		Debug:          true,
 	})
 
@@ -98,6 +103,7 @@ func main() {
 
 // dbクライアントを初期化する関数
 // 環境変数の読み込みとデータベースへの接続を行う
+// main関数内で呼び出す様にはしないほうが良い気がする
 func initDB() *sql.DB {
 	dbUser := os.Getenv("DB_USER")
 	dbName := os.Getenv("DB_NAME")
@@ -111,14 +117,16 @@ func initDB() *sql.DB {
 	db, err := sql.Open("postgres", d)
 	if err != nil {
 		log.Print(err)
+		// sql.Openが失敗した時はnilを返す
+		return nil
 	}
 
 	// データベースに接続できるか確認
-	// THINK: DBへのpingが失敗した時のステータスを保持する変数がpingErrなのは
-	// ちょっと分かりづらい気がする
 	pingErr := db.Ping()
 	if pingErr != nil {
 		log.Print(pingErr)
+		// db.Pingが失敗した時はnilを返す
+		return nil
 	}
 	log.Print("Successfully connected!")
 
@@ -151,6 +159,7 @@ func getUserslistHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	defer rows.Close()
 
+	// WILL: 配列に格納するのではなく、mapに格納してjson形式で返すようにしたい
 	var users []User
 	for rows.Next() {
 		var user User
@@ -170,7 +179,7 @@ func getUserslistHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// users: {"id":"",...}  というjson形式で返すために加工する必要がある現在は下記の形で返している
 	// users: %s[{a938f06c-3f90-4dc2-97df-0f8dd456eba9 Alice 1990-01-01 00:00:00 +0000 +0000} {ed99e003-349e-42b7-ae49-74594c7faa29 Bob 1992-05-15 00:00:00 +0000 +0000} {fc73ce46-bbda-476b-b991-3c4fe63e4af5 Charlie 1988-11-23 00:00:00 +0000 +0000}]
 
-	response := fmt.Sprint("users: %s", users)
+	response := fmt.Sprintf("users: %s", users)
 	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 	// レスポンスを返す
 	w.Write([]byte(response))
@@ -182,6 +191,7 @@ func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		http.Error(w, "Only GET method is supported", http.StatusMethodNotAllowed)
 		return
 	}
+	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 
 	dbErr := db.Ping()
 	if dbErr == nil {
@@ -189,7 +199,7 @@ func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		response := StatusResponse{Status: "OK"}
 		jsonResponse, err := json.Marshal(response)
 		if err != nil {
-			log.Print(err)
+			log.Printf("Error:Json marshal %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
@@ -197,10 +207,10 @@ func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonResponse)
 	} else {
-		http.Error(w, "DB connection error", http.StatusInternalServerError)
+		// DBへの接続が失敗した時はエラーを返す
+		log.Print(dbErr)
+		http.Error(w, "Error Please Reload", http.StatusInternalServerError)
 	}
-	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
-
 }
 
 func getUserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
@@ -247,11 +257,49 @@ func getUserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 		jsonresponse, err := json.Marshal(user)
 		if err != nil {
-			log.Print(err)
+			log.Printf("Error:Json marshal %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 		// レスポンスを返す
 		w.Write(jsonresponse)
 	}
+}
+
+func createUserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST method is supported", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// リクエストボディを読み込む
+	reqBody, err := readRequestBody(r)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	log.Print(reqBody)
+	response := StatusResponse{Status: "OK"}
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		log.Printf("Error:Json marshal %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.Write(jsonResponse)
+}
+
+// リクエストボディの要素を全て読み込む関数
+func readRequestBody(r *http.Request) (string, error) {
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
+		return "", err
+	}
+	// リクエストボディを文字列に変換
+	// リクエストボディのそのまま中身を文字列にするということは
+	// multi-part/form-dataのような形式のリクエストボディを崩してしまうのではないかと思う
+	reqBodyString := string(reqBody)
+	log.Printf("Read Request body: %s", reqBodyString)
+	return reqBodyString, nil
 }
