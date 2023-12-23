@@ -1,5 +1,4 @@
-# Deploy Jekyll with Github Pages
-name: Deploy Jekyll with GitHub Pages
+name: Build Github Pages from Jekyll
 
 on:
   # Runs on pushes targeting the default branch
@@ -57,16 +56,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
+          # nameを指定しないと、デプロイ時にエラーが発生する為、指定している
+          # 対象workflow: deploy-gh-pages-made-from-jekyll.yml
+          name: gh-pages-with-jekyll
           path: ${{ github.workspace }}/pages/_site
 
-  # Deployment job
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v3
