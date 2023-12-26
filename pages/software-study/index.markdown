@@ -1,7 +1,7 @@
 ---
 layout: page
 title: ソフトウェア学習
-permalink: /software-study/
+permalink: /_post-of-software-study/
 ---
 
 このページはソフトウェアについての学習を段階的に行うことができます
@@ -24,3 +24,13 @@ permalink: /software-study/
 3. ドキュメントのスコープ 
 4. 何を教えようとしているのか 
 5. ドキュメントを読み込むことで得られるメリット、デメリット
+
+<!--ここではソフトウェア学習のコンテンツとして投稿した内容を表示する様にしたい-->
+{% for tag in site.tags %}
+<h3>{{ tag[0] }}</h3>
+  <ul>
+    {% for post in tag[1] %}
+      <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
+{% endfor %}

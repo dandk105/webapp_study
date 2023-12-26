@@ -1,7 +1,7 @@
 ---
 layout: page
 title: プロジェクト学習
-permalink: /project-study/
+permalink: /_posts-study/
 ---
 
 このページは、このプロジェクトの進め方についての学習を段階的に行うことができます
@@ -20,3 +20,13 @@ permalink: /project-study/
 3. ドキュメントのスコープ
 4. 何を教えようとしているのか
 5. ドキュメントを読み込むことで得られるメリット、デメリット
+
+<h1>コンテンツ</h1>
+{% for tag in site.tags %}
+  <h3>{{ tag[0] }}</h3>
+  <ul>
+    {% for post in tag[1] %}
+      <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
+{% endfor %}
