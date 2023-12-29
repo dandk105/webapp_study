@@ -1,0 +1,20 @@
+---
+layout: post
+title: Gitについて
+permalink: /_posts/git/
+tags: [git,_posts,tools,description,software-study]
+---
+
+このページはGitについて学ぶ事ができます。
+
+学習の対象者
+
+前提条件
+ゴール
+ドキュメントのスコープ
+何を教えようとしているのか
+ドキュメントを読み込むことで得られるメリット、デメリット
+
+
+引用元
+[Git](https://git-scm.com/book/ja/v2)
