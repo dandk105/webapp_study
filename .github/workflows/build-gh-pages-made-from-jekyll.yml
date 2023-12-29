@@ -1,4 +1,4 @@
-name: Build Github Pages from Jekyll
+name: Build testing of Github Pages from Jekyll
 
 on:
   # Runs on pushes targeting the default branch
@@ -41,6 +41,8 @@ jobs:
           # 利用しているテーマのバージョンがそれ以上なのでテーマのビルドがされないため、それを回避するために3.1を指定している
           ruby-version: "3.1"
           bundler-cache: true
+      - run: bundle install
+      # test working flow of jekyll
       - run: bundle exec jekyll build --baseurl "${{ steps.setup-pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
