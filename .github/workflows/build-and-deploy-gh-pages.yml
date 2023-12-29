@@ -66,6 +66,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    # このjobはbuildが完了した後に実行される
+    # 依存関係を指定することで、buildが完了するまで実行されないようにしている
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
