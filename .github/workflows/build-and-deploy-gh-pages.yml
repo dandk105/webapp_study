@@ -56,9 +56,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          # nameを指定しないと、デプロイ時にエラーが発生する為、指定している
-          # 対象workflow: deploy-gh-pages-made-from-jekyll.yml
-          name: gh-pages-with-jekyll
+          # Artifactの名前を指定してしまうと、既にアップロードずみのものが見つからないというエラーが出る
+          # https://github.com/dandk105/webapp_study/actions/runs/7356959971
           path: ${{ github.workspace }}/pages/_site
 
   # Deployment job
