@@ -72,13 +72,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download artifact
-        uses: actions/download-artifact@v3
-        with:
-          # nameをbuildのnameに合わせなければ、artifactが見つからず実行されないので注意
-          # 対象workflow: build-gh-pages-made-from-jekyll.yml
-          name: gh-pages-with-jekyll
-          path: ${{ github.workspace }}/pages/_site
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v3
