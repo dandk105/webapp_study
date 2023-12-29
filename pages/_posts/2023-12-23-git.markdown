@@ -2,7 +2,7 @@
 layout: post
 title: Gitについて
 permalink: /_posts/git/
-tags: [git,_posts,tools,description]
+tags: [git,_posts,tools,description,software-study]
 ---
 
 このページはGitについて学ぶ事ができます。

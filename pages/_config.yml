@@ -20,7 +20,7 @@
 
 title: webApp study Project Pages
 description: >- # this means to ignore newlines until "baseurl:"
-  QAの人間や初めてwebappについて勉強する初学者向けのサイトです。
+  ソフトウェア開発について勉強する初学者向けのサイトです。
   プロジェクトの進め方についての資料
   ソフトウェアについて初学者が理解するための資料がこのサイトに用意されています。
 baseurl: "" # the subpath of your site, e.g. /blog

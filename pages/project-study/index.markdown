@@ -22,11 +22,8 @@ permalink: /_posts-study/
 5. ドキュメントを読み込むことで得られるメリット、デメリット
 
 <h1>コンテンツ</h1>
-{% for tag in site.tags %}
-  <h3>{{ tag[0] }}</h3>
+{% for study-content in site.tags.project-study %}
   <ul>
-    {% for post in tag[1] %}
-      <li><a href="{{ post.url }}">{{ post.title }}</a></li>
-    {% endfor %}
+   <li><a href="{{ study-content.url }}">{{ study-content.title }}</a></li>
   </ul>
 {% endfor %}

@@ -26,11 +26,9 @@ permalink: /_post-of-software-study/
 5. ドキュメントを読み込むことで得られるメリット、デメリット
 
 <!--ここではソフトウェア学習のコンテンツとして投稿した内容を表示する様にしたい-->
-{% for tag in site.tags %}
-<h3>{{ tag[0] }}</h3>
+<h1>コンテンツ</h1>
+{% for study-content in site.tags.software-study %}
   <ul>
-    {% for post in tag[1] %}
-      <li><a href="{{ post.url }}">{{ post.title }}</a></li>
-    {% endfor %}
+   <li><a href="{{ study-content.url }}">{{ study-content.title }}</a></li>
   </ul>
 {% endfor %}
