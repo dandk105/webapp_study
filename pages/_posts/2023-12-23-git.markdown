@@ -1,11 +1,11 @@
 ---
 layout: post
 title: Gitについて
-permalink: /_posts/git/
+permalink: /_posts/software-study/git/
 tags: [git,_posts,tools,description,software-study]
 ---
 
-このページはGitについて学ぶ事ができます。
+このPostはGitについて学ぶ事ができます。
 
 学習の対象者
 
