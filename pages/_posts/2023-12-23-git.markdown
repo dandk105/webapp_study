@@ -15,6 +15,7 @@ tags: [git,_posts,tools,description,software-study]
 <li><a href="#goal">ゴール</a></li>
 <li><a href="#scope">ドキュメントのスコープ</a></li>
 <li><a href="#scope">ドキュメントを読み込むことで得られる事</a></li>
+<li><a href="#do">実践</a></li>
 
 <br>
 
@@ -25,6 +26,7 @@ tags: [git,_posts,tools,description,software-study]
 
 - Gitをソフトウェア開発業務で利用した事がない方
 - Gitをそもそも知らない方
+- Gitの基本的なコマンドを忘れた方
 
 <br>
 
@@ -52,8 +54,6 @@ tags: [git,_posts,tools,description,software-study]
   - ファイルの変更をGitで追跡し、コミットする方法
 - リモートリポジトリへのプッシュ
   - ローカルの変更をリモートリポジトリにプッシュする方法
-- プルリクエストの作成
-  - 自分の変更をプルリクエストとしてリモートリポジトリに提出する方法
 
 <br>
 
@@ -69,7 +69,12 @@ tags: [git,_posts,tools,description,software-study]
 <li>生産性のメトリクスの取得を特定の期間のコミット数や行数を元に行う</li>
 
 
-<h2>詳細</h2>
+<h2 id="do">実践</h2>
+実際にコマンドを記入してみましょう
+
+Windowsの場合はGit Bashを利用してください
+
+Macの場合は端末を利用してください
 
 ```bash
 git clone repository/directory
@@ -81,13 +86,51 @@ git checkout branch-name
 ```
 
 ```bash
+git add file-name
+git status
+git commit -m "commit message"
 ```
-
-<h3>このプロジェクトを例に</h3>
 
 ```bash
-git clone　git@github.com:dandk105/webapp_study.git
+git push origin branch-name
 ```
 
+<h3>実践(このプロジェクトを例に)</h3>
+
+Windowsの場合はGit Bashを利用してください
+
+Macの場合は端末を利用してください
+
+cloneをsshで行う場合
+```bash
+git clone git@github.com:dandk105/webapp_study.git
+```
+cloneをhttpsで行う場合
+```bash
+git clone https://github.com/dandk105/webapp_study.git
+```
+branchを作成し、作成したbranchに切り替える
+```bash
+git branch demo-branch
+git checkout demo-branch
+```
+追加したファイルを変更に追加する
+追加できているのかを確認する
+追加したファイルをコミットする
+```bash
+git add .
+git status
+git commit -m "初めてのコミット"
+```
+コミットした変更をリモートリポジトリにプッシュする
+```bash
+git push origin demo-branch
+```
+
+
+
 引用・参考元
+
 [Git](https://git-scm.com/book/ja/v2)
+
+[Git Bashのインストール]()
