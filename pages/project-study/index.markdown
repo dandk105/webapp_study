@@ -15,16 +15,14 @@ permalink: /_posts-study/
 
 それぞれのコンテンツは以下のようなフォーマットで作成されています
 1. 学習の対象者
-    1. 前提条件
 2. ゴール
-3. ドキュメントのスコープ
-4. 何を教えようとしているのか
-5. ドキュメントを読み込むことで得られるメリット、デメリット
+3. 該当ドキュメントのスコープ
+4. ドキュメントを読み込むことで得られる事
 
 <h1>コンテンツ</h1>
 <!-- タグでプロジェクト学習を設定したPOSTだけここのコンテンツで表示される様に設定している -->
 {% for content in site.tags.project-study %}
   <ul>
-   <li><a href="{{ content }}">{{ content.title }}</a></li>
+   <li><a href="{{ content.url }}">{{ content.title }}</a></li>
   </ul>
 {% endfor %}

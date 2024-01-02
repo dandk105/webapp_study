@@ -1,21 +1,140 @@
 ---
 layout: post
 title: Gitについて
-permalink: /_posts/git/
+permalink: /posts/software-study/git/
 tags: [git,_posts,tools,description,software-study]
 ---
 
-このページはGitについて学ぶ事ができます。
+<h1>Gitの学習 </h1>
+このPostはGitについて学ぶ事ができます。
 
-学習の対象者
+解説していることは目次からご覧ください
+
+<h2>目次</h2>
+<li><a href="#target">学習の対象者</a></li>
+<li><a href="#goal">ゴール</a></li>
+<li><a href="#scope">ドキュメントのスコープ</a></li>
+<li><a href="#scope">ドキュメントを読み込むことで得られる事</a></li>
+<li><a href="#do">実践</a></li>
 
 
-前提条件
-ゴール
-ドキュメントのスコープ
-何を教えようとしているのか
-ドキュメントを読み込むことで得られるメリット、デメリット
+<br>
+
+<h2 id="target">学習の対象者</h2>
+このドキュメントは以下の人物像を対象にしています。
+
+その為これ以外の人物についてはドキュメントを読み飛ばしていただいてかまいせん。
+
+- Gitをソフトウェア開発業務で利用した事がない方
+- Gitをそもそも知らない方
+- Gitの基本的なコマンドを忘れた方
+
+<br>
+
+<h2 id="goal">ゴール</h2>
+このドキュメントのゴールは以下の通りです。
+
+**Gitをソフトウェア開発業務で利用するための最低限の知識を得る**
+
+具体的にはGitの基本的な操作（クローン、コミット、プッシュ、プル、マージ、ブランチ）を理解し、実行できるようになることがゴールです。
+
+<br>
+
+<h2 id="scope">ドキュメントのスコープ</h2>
+このドキュメントのスコープは以下の通りです。
+
+- Gitの基本概念
+- バージョン管理とは何か
+- Gitの基本的な用語（コミット、リポジトリ、ブランチ、マージなど）の説明
+
+- リモートリポジトリのクローン
+  - リモートリポジトリからローカルにクローンする方法
+- ブランチの作成と切り替え
+  - 新しいブランチを作成し、既存のブランチに切り替える方法
+- 変更の追跡とコミット
+  - ファイルの変更をGitで追跡し、コミットする方法
+- リモートリポジトリへのプッシュ
+  - ローカルの変更をリモートリポジトリにプッシュする方法
+
+<br>
+
+<h2 id="merit">ドキュメントを読み込むことで得られる事</h2>
+具体的な業務においては以下の様なものです。
+<li>QAとしてエンジニアが作成したドキュメントの記載にローカルで変更を加えてGitHub上でプルリクとして提案する</li>
+<li>QAとして既存のE2Eテストに加えた変更をGithub上でプルリクとして提案する</li>
+<li>エンジニアとして既存のソフトウェアに変更を提案する</li>
+<li>エンジニアとしてソフトウェアのバージョン管理を行う</li>
+
+発展として
+<li>不具合分析をGitのバージョン管理を追跡して加えられた変更を元に行う</li>
+<li>生産性のメトリクスの取得を特定の期間のコミット数や行数を元に行う</li>
+
+<h1>TODO:概念の説明の追加</h1>
+現在の構成だと、Gitの概念部分が説明できておらず、いきなり説明部分に飛んでしまっているので
+初学者の方に優しくない構成になっている為それを改善する
+
+<h2 id="do">実践</h2>
+実際にコマンドを記入してみましょう
+
+Windowsの場合はGit Bashを利用してください
+
+Macの場合は端末を利用してください
+
+```bash
+git clone repository/directory
+```
+
+```bash
+git branch branch-name
+git checkout branch-name
+```
+
+```bash
+git add file-name
+git status
+git commit -m "commit message"
+```
+
+```bash
+git push origin branch-name
+```
+
+<h3>実践(このプロジェクトを例に)</h3>
+
+Windowsの場合はGit Bashを利用してください
+
+Macの場合は端末を利用してください
+
+cloneをsshで行う場合
+```bash
+git clone git@github.com:dandk105/webapp_study.git
+```
+cloneをhttpsで行う場合
+```bash
+git clone https://github.com/dandk105/webapp_study.git
+```
+branchを作成し、作成したbranchに切り替える
+```bash
+git branch demo-branch
+git checkout demo-branch
+```
+追加したファイルを変更に追加する
+追加できているのかを確認する
+追加したファイルをコミットする
+```bash
+git add .
+git status
+git commit -m "初めてのコミット"
+```
+コミットした変更をリモートリポジトリにプッシュする
+```bash
+git push origin demo-branch
+```
 
 
-引用元
+
+引用・参考元
+
 [Git](https://git-scm.com/book/ja/v2)
+
+[Git Bashのインストール]()
