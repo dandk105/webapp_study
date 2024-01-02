@@ -1,0 +1,76 @@
+name: Build Github Pages from Jekyll
+
+on:
+  # メインブランチのpagesディレクトリがpushされた時に実行する
+  push:
+    branches: ["main"]
+    paths: ["pages/**"]
+
+  # 手動でも実行できる
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Pages
+        id: setup-pages
+        uses: actions/configure-pages@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          # Jekyll build のアクションで使われているRubyのバージョンは2.8 とかで
+          # 利用しているテーマのバージョンがそれ以上なのでテーマのビルドがされないため、それを回避するために3.1を指定している
+          ruby-version: '3.1'
+          # bundle installを自動で実行する為にこの設定が必要
+          bundler-cache: true
+          # bundle installが勝手に設定されるはずなので、ここで指定する必要はないはず
+      - run: bundle install
+      - name: Build with Jekyll
+        run: bundle exec jekyll build --baseurl "${{ steps.setup-pages.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
+      - name: Fix dir permissions
+        run: |
+          chmod -c -R +rX "_site/" | while read line; do
+            echo "::warning title=Invalid file permissions automatically fixed::$line"
+          done
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          # Artifactの名前を指定してしまうと、既にアップロードずみのものが見つからないというエラーが出る
+          # https://github.com/dandk105/webapp_study/actions/runs/7356959971
+          path: ${{ github.workspace }}/pages/_site
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # このjobはbuildが完了した後に実行される
+    # 依存関係を指定することで、buildが完了するまで実行されないようにしている
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v3
