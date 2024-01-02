@@ -1,5 +1,4 @@
-# Deploy Jekyll with Github Pages
-name: Deploy Jekyll with GitHub Pages
+name: Build testing of Github Pages from Jekyll
 
 on:
   # Runs on pushes targeting the default branch
@@ -32,21 +31,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup Pages
+        id: setup-pages
+        uses: actions/configure-pages@v4
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
           # Jekyll build のアクションで使われているRubyのバージョンは2.8 とかで
           # 利用しているテーマのバージョンがそれ以上なのでテーマのビルドがされないため、それを回避するために3.1を指定している
-          ruby-version: '3.1'
+          ruby-version: "3.1"
           bundler-cache: true
-      - name: Setup Pages
-        id: setup-pages
-        uses: actions/configure-pages@v4
-      - name: Install dependencies
-        # Jekyll を実行する為に、bundle install をして依存関係を全てインストールする
-        run: bundle install
-      - name: Build with Jekyll
-        run: bundle exec jekyll build --baseurl "${{ steps.setup-pages.outputs.base_path }}"
+      - run: bundle install
+      # test working flow of jekyll
+      - run: bundle exec jekyll build --baseurl "${{ steps.setup-pages.outputs.base_path }}"
         env:
           JEKYLL_ENV: production
       - name: Fix dir permissions
@@ -57,16 +54,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
+          # nameを指定しないと、デプロイ時にエラーが発生する為、指定している
+          # 対象workflow: deploy-gh-pages-made-from-jekyll.yml
+          name: gh-pages-with-jekyll
           path: ${{ github.workspace }}/pages/_site
-
-  # Deployment job
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v3
