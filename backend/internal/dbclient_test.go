@@ -16,7 +16,7 @@ func TestCreateDataSourceName(t *testing.T) {
 
 	expectedDSN := "user=testuser dbname=testdb password=testpassword host=localhost sslmode=disable"
 
-	// Call the function being tested
+	// 構造体を初期化して、ポインタ参照を行っている
 	dbinit := &DBInitializer{}
 	// 環境変数が取得できなかった時に、ランタイムエラーが発生してしまう。
 	dbinit.CreateDataSourceName()
@@ -57,7 +57,8 @@ func TestCreateConnection(t *testing.T) {
 		dbc := &Client{}
 		// ここのDataBaseへの接続の際に、中で隠蔽しているDSNの作成で空白文字が
 		// 生成されてしまうので、テストが失敗してしまう
-		dbc.CreateConnection()
+		dsn := "user=test dbname=test password=test host=test sslmode=disable"
+		dbc.CreateConnection(dsn)
 		assert.NotNil(t, dbc.DataBaseConnection)
 	default:
 		// Set up test environment variables
@@ -71,7 +72,7 @@ func TestCreateConnection(t *testing.T) {
 func TestSetDBClientLogger(t *testing.T) {
 	// Set up test environment variables
 	dbc := &Client{}
-	dbc.SetDBClientLogger()
+	dbc.SetDataBaseClientLogger()
 	assert.NotNil(t, dbc.logger)
 	dbc.logger.Print("Test")
 }
