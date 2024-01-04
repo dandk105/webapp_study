@@ -8,14 +8,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var existsEnvs = &Envs{DbUser: "testuser", DbName: "testdb", DbPassword: "testpassword", DbHost: "localhost"}
-var emptyEnvs = &Envs{DbUser: "", DbName: "", DbPassword: "", DbHost: ""}
+var existsEnvs = &Envs{DbUser: "myuser", DbName: "mydatabase", DbPassword: "mypassword", DbHost: "localhost"}
 var defaultEnvs = &Envs{DbUser: "default", DbName: "default", DbPassword: "default", DbHost: "localhost"}
 
 func SetupExistsEnv() {
-	u := "testuser"
-	n := "testdb"
-	p := "testpassword"
+	u := "myuser"
+	n := "mydatabase"
+	p := "mypassword"
 	h := "localhost"
 
 	os.Setenv("DB_USER", u)
@@ -64,35 +63,22 @@ func TestNewDBSourceName(t *testing.T) {
 	tc := *existsEnvs
 	d := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", tc.DbUser, tc.DbName, tc.DbPassword, tc.DbHost)
 
-	c := DatabaseSourceConfig{}
-	dbconf := c.CreateDataSourceName()
+	dbconf := CreateDataSourceName()
 	dsn := dbconf.DBSourceName
 
 	assert.Equal(t, d, dsn)
 }
 
 // TODO: 例外が発生しないようなテストを書く
-// A2023/11/26 15:55:50 Set Dsn user= dbname= password= host= sslmode=disable
-// panic: runtime error: invalid memory address or nil pointer dereference [recovered]
-func TestCreateConnection(t *testing.T) {
-	switch os.Getenv("TEST_TYPE") {
-	case "integration":
-		// Set up test environment variables for integration testing
-		dbc := &Client{}
-		// ここのDataBaseへの接続の際に、中で隠蔽しているDSNの作成で空白文字が
-		// 生成されてしまうので、テストが失敗してしまう
-		dsn := "user=test dbname=test password=test host=test sslmode=disable"
-		dbc.CreateConnection(dsn)
-		assert.NotNil(t, dbc.DataBaseConnection)
-	default:
-		// Set up test environment variables
-		dbc := &Client{}
+// 制約: PostgresDatabaseをlocalでデフォルトの値で動かしている必要がある
+// なお、DBを稼働させていなかった場合は、Pingが接続されずに失敗する
 
-		dsn := "user=default dbname=default password=default host=localhost sslmode=disable"
-		dbc.CreateConnection(dsn)
-		assert.NotNil(t, dbc.DataBaseConnection)
-		assert.Nil(t, dbc.DataBaseConnection.Ping())
-	}
+func TestCreateConnection(t *testing.T) {
+	SetupExistsEnv()
+
+	c := CreateDataSourceName()
+	client := Client{}
+	client.CreateConnection(c.DBSourceName)
 }
 
 func TestSetDBClientLogger(t *testing.T) {

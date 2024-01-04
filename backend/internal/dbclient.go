@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	_ "github.com/lib/pq"
 )
 
 type Envs struct {
@@ -56,20 +58,10 @@ type DatabaseSourceConfig struct {
 	DBSourceName string
 }
 
-// TODO: 環境変数を取得できなかった時に、空文字列を変数に入力してしまもうので、
-// その後の工程において、ランタイムエラーが発生してしまう。これを防ぐために、何らかのデフォルト値
-// を設定する必要がある
-
-func (config *DatabaseSourceConfig) CreateDataSourceName() *DatabaseSourceConfig {
+// DataSourceNameを作成する関数
+// 引数を受け取らずにDatabaseSourceNameが設定された構造体を返却する
+func CreateDataSourceName() *DatabaseSourceConfig {
 	envs := NewDBConfigEnvs()
-
-	/*
-		これすれば、一々取得する関数を打たなくていい省略にはなるけど、
-		もしどれかの環境変数を取得出来なかった時に、デフォルトの値で起動できる様にする
-		事まで考えると環境変数を取得出来たかどうかの判断が難しい
-		os.ExpandEnv("user=${DB_USER} dbname=${DB_NAME} password=${DB_PASSWORD} host=${DB_HOsT} sslmode=disable")
-	*/
-
 	dsn := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", envs.DbUser, envs.DbName, envs.DbPassword, envs.DbHost)
 
 	log.Printf("Set Dsn %s\n", dsn)
@@ -78,7 +70,6 @@ func (config *DatabaseSourceConfig) CreateDataSourceName() *DatabaseSourceConfig
 
 // DBの通信を担う構造体
 type Client struct {
-	SourceName *DatabaseSourceConfig
 	// DBの接続についての設定は基本的にデフォルトで設定されている値が適応される
 	DataBaseConnection *sql.DB
 	logger             *log.Logger
@@ -86,27 +77,49 @@ type Client struct {
 
 /*
 Postgresへの接続を確保する為に使用されるメソッド
+接続が成功した場合には、DatabaseClientの接続を上書きする
 
 dsn string DataSourceNameの略、Databaseへ接続する際の名前を受け取る
 */
 
-func (client *Client) CreateConnection(dsn string) {
+func (client *Client) CreateConnection(dsn string) error {
 	// postgresのみを対象としているためそれ以外のドライバーの事は考慮していない
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		client.logger.Printf("Failed Open DB\n %v", err)
+		log.Printf("Failed Open DB: %v", err)
+		return err
 	}
 	defer db.Close()
 	// DBへの接続をPing通信を行う事で確認している
 	pingErr := db.Ping()
 	if pingErr == nil {
-		client.logger.Print("Success DB Ping Connection")
+		log.Print("Success DB Ping Connection")
 	} else {
-		client.logger.Print("Failed DB Ping Connection")
+		log.Printf("Failed DB Ping Connection")
+		return pingErr
 	}
+	// 処理が最後まで問題なく実行された場合に構造体のDatabaseConnectionを
+	// 上書きして新しい状態として処理を行う
 	client.DataBaseConnection = db
+	return nil
 }
 
 func (client *Client) SetDataBaseClientLogger() {
 	client.logger = log.New(os.Stdout, "DBClient: ", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
+func SetDatabaseClient() *Client {
+	conf := CreateDataSourceName()
+	client := Client{}
+	client.SetDataBaseClientLogger()
+	err := client.CreateConnection(conf.DBSourceName)
+
+	if err != nil {
+		log.Fatalf("Failed Creating of Database Client\n")
+	}
+
+	// TODO:必ず返り値にDBClient構造体を返却する様にする
+	// 現在はこの関数内でハンドリングが出来ていないため、依存している関数で何らかの
+	// panicが発生した際に処理する事ができず、DatabaseClientが必ず帰ってくる信用がないため
+	return &client
 }
