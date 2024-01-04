@@ -68,12 +68,9 @@ func main() {
 	mux.HandleFunc(HandlersDescription["users"], func(w http.ResponseWriter, r *http.Request) {
 		getUserslistHandler(w, r, db)
 	})
-	mux.HandleFunc(HandlersDescription["status"], func(w http.ResponseWriter, r *http.Request) {
-		statuscheckHandler(w, r, db)
-	})
-	mux.HandleFunc(HandlersDescription["userData"], handlers.DatabaseStatusCheckHandler)
-	mux.HandleFunc("/api/createuserdata", func(w http.ResponseWriter, r *http.Request) {
-		createUserDataHandler(w, r, db)
+	mux.HandleFunc(HandlersDescription["status"], handlers.DatabaseStatusCheckHandler)
+	mux.HandleFunc(HandlersDescription["userData"], func(w http.ResponseWriter, r *http.Request) {
+		getUserDataHandler(w, r, db)
 	})
 
 	// CORSの設定をしている部分。AllowsOriginsには許可するオリジンとしてフロントエンドのドメインを指定する
@@ -188,34 +185,6 @@ func getUserslistHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Write([]byte(response))
 }
 
-// TODO: handlerを全て別のファイルに分離した方が良さそう
-func statuscheckHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only GET method is supported", http.StatusMethodNotAllowed)
-		return
-	}
-	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
-
-	dbErr := db.Ping()
-	if dbErr == nil {
-		// DBへの接続が成功した時はJSON形式でstatus:OK を返す
-		response := StatusResponse{Status: "OK"}
-		jsonResponse, err := json.Marshal(response)
-		if err != nil {
-			log.Printf("Error:Json marshal %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-
-		// レスポンスを返す
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(jsonResponse)
-	} else {
-		// DBへの接続が失敗した時はエラーを返す
-		log.Print(dbErr)
-		http.Error(w, "Error Please Reload", http.StatusInternalServerError)
-	}
-}
-
 func getUserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// GETメソッドを受け入れる
 	if r.Method != http.MethodGet {
@@ -267,29 +236,6 @@ func getUserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		// レスポンスを返す
 		w.Write(jsonresponse)
 	}
-}
-
-func createUserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Only POST method is supported", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// リクエストボディを読み込む
-	reqBody, err := readRequestBody(r)
-	if err != nil {
-		log.Print(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	log.Print(reqBody)
-	response := StatusResponse{Status: "OK"}
-	jsonResponse, err := json.Marshal(response)
-	if err != nil {
-		log.Printf("Error:Json marshal %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	w.Write(jsonResponse)
 }
 
 // リクエストボディの要素を全て読み込む関数
