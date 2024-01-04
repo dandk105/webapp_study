@@ -7,46 +7,61 @@ import (
 	"os"
 )
 
-func CheckGetedDBsEnvs(keys) bool {
-	// 入力された
-	for keys {
-		_, looked := os.LookupEnv(key)
-		looked != ok
-		return false
-		else
-		return true
+type Envs struct {
+	DbUser     string
+	DbName     string
+	DbPassword string
+	DbHost     string
+}
+
+func NewDBConfigEnvs() *Envs {
+
+	// WILL: いずれ共通化して読みやすい様にする
+	// 対象の環境変数が存在しているか判断して、存在している場合は何もせず、存在していない時にはデフォルトの値を入力する
+	Username, exists := os.LookupEnv("DB_USER")
+	if !exists || Username == "" {
+		Username = "default"
 	}
-	return false
+	DatabaseName, exists := os.LookupEnv("DB_NAME")
+	if !exists || DatabaseName == "" {
+		DatabaseName = "default"
+	}
+	DatabasePassword, exists := os.LookupEnv("DB_PASSWORD")
+	if !exists || DatabasePassword == "" {
+		DatabasePassword = "default"
+	}
+	DatabaseHost, exists := os.LookupEnv("DB_HOST")
+	if !exists || DatabaseHost == "" {
+		DatabaseHost = "localhost"
+	}
+
+	a := &Envs{
+		DbUser:     Username,
+		DbName:     DatabaseName,
+		DbPassword: DatabasePassword,
+		DbHost:     DatabaseHost,
+	}
+
+	// Passwordをそのまま標準出力させない為に、マスキングを行っている。
+	// なお、Passwordに空白の値が設定される事はなく、デフォルトの値か環境変数で設定された値のどちらかである
+	// TODO: 開発環境の時は、取得した設定の値を全て出力する様に切り替えたい
+	log.Printf("Create Config Struct of Database from Envs \n %s, %s, ***, %s \n", a.DbUser, a.DbName, a.DbHost)
+
+	return a
 }
 
 // DBの設定をまとめている構造体
-// @Deprecated 関数の方が管理が楽なので、構造体は廃止する
-type DBConfiger struct {
+type DatabaseSourceConfig struct {
 	// databaseへの接続を行う名前を保持する
-	DbSourceName string
+	DBSourceName string
 }
 
 // TODO: 環境変数を取得できなかった時に、空文字列を変数に入力してしまもうので、
 // その後の工程において、ランタイムエラーが発生してしまう。これを防ぐために、何らかのデフォルト値
 // を設定する必要がある
-func (configer *DBConfiger) CreateDataSourceName() string {
-	// TODO: 環境変数からDBの情報を取得する部分を外部関数に切り出した方が、汎用性が高い
-	// Will: Default値を設定するなりして、環境変数が取得できなかった時の挙動を定義する
-	dbUser := os.Getenv("DB_USER")
-	dbName := os.Getenv("DB_NAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
 
-	GetedDbEnvs := CheckGetedDBsEnvs()
-
-	switch GetedDbEnvs {
-	case true:
-	case false:
-		_ = os.Setenv("DB_USER", "default")
-		_ = os.Setenv("DB_NAME", "default")
-		_ = os.Setenv("DB_PASSWORD", "default")
-		_ = os.Setenv("DB_HOST", "default")
-	}
+func (config *DatabaseSourceConfig) CreateDataSourceName() *DatabaseSourceConfig {
+	envs := NewDBConfigEnvs()
 
 	/*
 		これすれば、一々取得する関数を打たなくていい省略にはなるけど、
@@ -55,25 +70,26 @@ func (configer *DBConfiger) CreateDataSourceName() string {
 		os.ExpandEnv("user=${DB_USER} dbname=${DB_NAME} password=${DB_PASSWORD} host=${DB_HOsT} sslmode=disable")
 	*/
 
-	dsn := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", dbUser, dbName, dbPassword, dbHost)
+	dsn := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", envs.DbUser, envs.DbName, envs.DbPassword, envs.DbHost)
 
 	log.Printf("Set Dsn %s\n", dsn)
-	return dsn
+	return &DatabaseSourceConfig{DBSourceName: dsn}
 }
 
 // DBの通信を担う構造体
 type Client struct {
-	dbConfig DBConfiger
+	SourceName *DatabaseSourceConfig
 	// DBの接続についての設定は基本的にデフォルトで設定されている値が適応される
 	DataBaseConnection *sql.DB
 	logger             *log.Logger
 }
 
 /*
-Postgressへの接続を確保する為に使用されるメソッド
+Postgresへの接続を確保する為に使用されるメソッド
 
 dsn string DataSourceNameの略、Databaseへ接続する際の名前を受け取る
- */
+*/
+
 func (client *Client) CreateConnection(dsn string) {
 	// postgresのみを対象としているためそれ以外のドライバーの事は考慮していない
 	db, err := sql.Open("postgres", dsn)

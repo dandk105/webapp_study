@@ -1,50 +1,74 @@
 package db
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateDataSourceName(t *testing.T) {
-	// Set up test environment variables
-	os.Setenv("DB_USER", "testuser")
-	os.Setenv("DB_NAME", "testdb")
-	os.Setenv("DB_PASSWORD", "testpassword")
-	os.Setenv("DB_HOST", "localhost")
+var existsEnvs = &Envs{DbUser: "testuser", DbName: "testdb", DbPassword: "testpassword", DbHost: "localhost"}
+var emptyEnvs = &Envs{DbUser: "", DbName: "", DbPassword: "", DbHost: ""}
+var defaultEnvs = &Envs{DbUser: "default", DbName: "default", DbPassword: "default", DbHost: "localhost"}
 
-	expectedDSN := "user=testuser dbname=testdb password=testpassword host=localhost sslmode=disable"
+func SetupExistsEnv() {
+	u := "testuser"
+	n := "testdb"
+	p := "testpassword"
+	h := "localhost"
 
-	// 構造体を初期化して、ポインタ参照を行っている
-	dbinit := &DBInitializer{}
-	// 環境変数が取得できなかった時に、ランタイムエラーが発生してしまう。
-	dbinit.CreateDataSourceName()
-
-	// Check if the returned DSN matches the expected DSN
-	assert.Equal(t, expectedDSN, dbinit.dsn)
+	os.Setenv("DB_USER", u)
+	os.Setenv("DB_NAME", n)
+	os.Setenv("DB_PASSWORD", p)
+	os.Setenv("DB_HOST", h)
 }
 
-/*
-ここでのテストは、環境変数が取得できなかった時に、デフォルト値が
-設定されるかどうかを確認するテスト
-*/
-func TestCreateDataSourceNameWithEmptyEnv(t *testing.T) {
-	// Set up test environment variables
-	os.Setenv("DB_USER", "")
-	os.Setenv("DB_NAME", "")
-	os.Setenv("DB_PASSWORD", "")
-	os.Setenv("DB_HOST", "")
+func SetupEmptyEnv() {
+	e := ""
 
-	expectedDSN := "user=myuser dbname=mydatabase password=mypassword host=localhost sslmode=disable"
+	os.Setenv("DB_USER", e)
+	os.Setenv("DB_NAME", e)
+	os.Setenv("DB_PASSWORD", e)
+	os.Setenv("DB_HOST", e)
+}
 
-	// Call the function being tested
-	dbinit := &DBInitializer{}
-	// 環境変数が取得できなかった時に、ランタイムエラーが発生してしまう。
-	dbinit.CreateDataSourceName()
+func TestNewDBConfigEnvs(t *testing.T) {
+	SetupExistsEnv()
+	tc := *existsEnvs
 
-	// Check if the returned DSN matches the expected DSN
-	assert.Equal(t, expectedDSN, dbinit.dsn)
+	a := Envs{}
+	a = *NewDBConfigEnvs()
+
+	assert.Equal(t, tc.DbUser, a.DbUser)
+	assert.Equal(t, tc.DbName, a.DbName)
+	assert.Equal(t, tc.DbPassword, a.DbPassword)
+	assert.Equal(t, tc.DbHost, a.DbHost)
+}
+
+func TestEmptyNewDBConfigEnvs(t *testing.T) {
+	SetupEmptyEnv()
+	tc := *defaultEnvs
+
+	a := Envs{}
+	a = *NewDBConfigEnvs()
+
+	assert.Equal(t, tc.DbUser, a.DbUser)
+	assert.Equal(t, tc.DbName, a.DbName)
+	assert.Equal(t, tc.DbPassword, a.DbPassword)
+	assert.Equal(t, tc.DbHost, a.DbHost)
+}
+
+func TestNewDBSourceName(t *testing.T) {
+	SetupExistsEnv()
+	tc := *existsEnvs
+	d := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", tc.DbUser, tc.DbName, tc.DbPassword, tc.DbHost)
+
+	c := DatabaseSourceConfig{}
+	dbconf := c.CreateDataSourceName()
+	dsn := dbconf.DBSourceName
+
+	assert.Equal(t, d, dsn)
 }
 
 // TODO: 例外が発生しないようなテストを書く
@@ -63,7 +87,9 @@ func TestCreateConnection(t *testing.T) {
 	default:
 		// Set up test environment variables
 		dbc := &Client{}
-		dbc.CreateConnection()
+
+		dsn := "user=default dbname=default password=default host=localhost sslmode=disable"
+		dbc.CreateConnection(dsn)
 		assert.NotNil(t, dbc.DataBaseConnection)
 		assert.Nil(t, dbc.DataBaseConnection.Ping())
 	}
