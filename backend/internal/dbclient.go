@@ -52,7 +52,7 @@ func NewDBConfigEnvs() *Envs {
 	return a
 }
 
-// DBの設定をまとめている構造体
+// DatabaseSourceConfig DBの設定をまとめている構造体
 type DatabaseSourceConfig struct {
 	// databaseへの接続を行う名前を保持する
 	DBSourceName string
@@ -72,16 +72,12 @@ func CreateDataSourceName() *DatabaseSourceConfig {
 type Client struct {
 	// DBの接続についての設定は基本的にデフォルトで設定されている値が適応される
 	DataBaseConnection *sql.DB
-	logger             *log.Logger
+	Log                *log.Logger
 }
 
-/*
-Postgresへの接続を確保する為に使用されるメソッド
-接続が成功した場合には、DatabaseClientの接続を上書きする
-
-dsn string DataSourceNameの略、Databaseへ接続する際の名前を受け取る
-*/
-
+// CreateConnection Postgresへの接続を確保する為に使用されるメソッド
+// 接続が成功した場合には、DatabaseClientの接続を上書きする
+// dsn string DataSourceNameの略、Databaseへ接続する際の名前を受け取る
 func (client *Client) CreateConnection(dsn string) error {
 	// postgresのみを対象としているためそれ以外のドライバーの事は考慮していない
 	db, err := sql.Open("postgres", dsn)
@@ -105,7 +101,11 @@ func (client *Client) CreateConnection(dsn string) error {
 }
 
 func (client *Client) SetDataBaseClientLogger() {
-	client.logger = log.New(os.Stdout, "DBClient: ", log.Ldate|log.Ltime|log.Lshortfile)
+	client.Log = log.New(os.Stdout, "DBClient: ", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
+func (client *Client) FatalSQLF(err error) {
+	client.Log.Fatalf("SQL Error: %v", err)
 }
 
 func SetDatabaseClient() *Client {

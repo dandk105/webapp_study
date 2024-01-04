@@ -1,4 +1,4 @@
-// package main
+package schema
 
 // まだmain fileから分離していない構造体達
 

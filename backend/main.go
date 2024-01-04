@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	handlers "github.com/dandk105/webapp_study/backend/handlers"
+
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
 )
@@ -69,9 +71,7 @@ func main() {
 	mux.HandleFunc(HandlersDescription["status"], func(w http.ResponseWriter, r *http.Request) {
 		statuscheckHandler(w, r, db)
 	})
-	mux.HandleFunc(HandlersDescription["userData"], func(w http.ResponseWriter, r *http.Request) {
-		getUserDataHandler(w, r, db)
-	})
+	mux.HandleFunc(HandlersDescription["userData"], handlers.DatabaseStatusCheckHandler)
 	mux.HandleFunc("/api/createuserdata", func(w http.ResponseWriter, r *http.Request) {
 		createUserDataHandler(w, r, db)
 	})
@@ -91,7 +91,10 @@ func main() {
 	log.Printf("%s: %s\n", HandlersDescription["status"], "Get server status")
 	log.Printf("%s: %s\n", HandlersDescription["userData"], "Get user data")
 
-	port := os.Getenv("PORT")
+	port, e := os.LookupEnv("PORT")
+	if e != false || port == "" {
+		log.Fatalf("Cannot Read Port Number from Env")
+	}
 
 	log.Printf("Starting server on :%s\n", port)
 	// 環境変数PORTでサーバーを起動. エラーが発生した時のみログに出力

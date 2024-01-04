@@ -63,28 +63,38 @@ func TestNewDBSourceName(t *testing.T) {
 	tc := *existsEnvs
 	d := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", tc.DbUser, tc.DbName, tc.DbPassword, tc.DbHost)
 
-	dbconf := CreateDataSourceName()
-	dsn := dbconf.DBSourceName
+	name := CreateDataSourceName()
+	dsn := name.DBSourceName
 
 	assert.Equal(t, d, dsn)
 }
 
-// TODO: 例外が発生しないようなテストを書く
-// 制約: PostgresDatabaseをlocalでデフォルトの値で動かしている必要がある
-// なお、DBを稼働させていなかった場合は、Pingが接続されずに失敗する
+// TODO: Flakyなテストではなく必ず成功する様にテストを書く
 
 func TestCreateConnection(t *testing.T) {
 	SetupExistsEnv()
 
 	c := CreateDataSourceName()
 	client := Client{}
-	client.CreateConnection(c.DBSourceName)
+	// Databaseが起動している時にはエラーが発生しないが、
+	// Databaseが起動していない時は必ずエラーが発生する
+	e := client.CreateConnection(c.DBSourceName)
+	assert.NoError(t, e)
+}
+
+// TODO: Flakyを直す
+// Databaseを起動していないといけない
+func TestSetDatabaseClient(t *testing.T) {
+	SetupExistsEnv()
+	a := SetDatabaseClient()
+
+	assert.NotNil(t, a)
 }
 
 func TestSetDBClientLogger(t *testing.T) {
 	// Set up test environment variables
 	dbc := &Client{}
 	dbc.SetDataBaseClientLogger()
-	assert.NotNil(t, dbc.logger)
-	dbc.logger.Print("Test")
+	assert.NotNil(t, dbc.Log)
+	dbc.Log.Printf("Sucess")
 }
