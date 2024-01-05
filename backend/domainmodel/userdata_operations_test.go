@@ -1,10 +1,6 @@
 package domainmodel
 
-import (
-	"github.com/stretchr/testify/assert"
-	"testing"
-)
-
+/*
 func TestUserDataAccesses_GetUserdata(t *testing.T) {
 	user := {}
 
@@ -19,4 +15,4 @@ func TestUserDataAccesses_CreateUserdata(t *testing.T) {
 
 	u := UserDataAccesses{}
 	res := u.CreateUserdata(user.Name,user.Birthday)
-}
+}*/

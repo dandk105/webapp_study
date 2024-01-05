@@ -20,6 +20,9 @@ func createDBConfigEnvs() *dbEnvs {
 
 	// WILL: いずれ共通化して読みやすい様にする
 	// 対象の環境変数が存在しているか判断して、存在している場合は何もせず、存在していない時にはデフォルトの値を入力する
+	// envsKye = {"ENV_KEY":"DB_USER","DEFAULT_KEY": "default"}
+	//
+	// for i range envsKye {res, e := os.lookupEnv(i) if !e || res == ""{ res = default["i"] }}
 	Username, exists := os.LookupEnv("DB_USER")
 	if !exists || Username == "" {
 		Username = "default"
@@ -101,6 +104,17 @@ func (client *Client) CreateConnection(dsn string) error {
 	// 上書きして新しい状態として処理を行う
 	client.DataBaseConnection = db
 	return nil
+}
+
+func (client *Client) CheckConnection() bool {
+	e := client.DataBaseConnection.Ping()
+	if e == nil {
+		log.Print("Success DB Ping Connection")
+		return true
+	} else {
+		log.Printf("Failed DB Ping Connection")
+		return false
+	}
 }
 
 func (client *Client) SetDataBaseClientLogger() {

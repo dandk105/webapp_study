@@ -1,12 +1,6 @@
 package usecase
 
-import (
-	"fmt"
-	"log"
-	"net/http"
-	"time"
-)
-
+/*
 func GetUserDatalistHandler(w http.ResponseWriter, r *http.Request) {
 	// GETメソッドを受け入れる
 	if r.Method != http.MethodGet {
@@ -101,3 +95,4 @@ func GetUserDataHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(jsonresponse)
 	}
 }
+*/

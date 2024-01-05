@@ -13,6 +13,7 @@ type UserDataAccesses struct {
 	ctx    context.Context
 }
 
+/*
 func (user *UserDataAccesses) GetUserdata() *schema.User{
 	user.client = dbclient.CreateDatabaseClient()
 	db := user.client.DataBaseConnection
@@ -34,3 +35,4 @@ func (user *UserDataAccesses) CreateUserdata() {
 }
 func (user *UserDataAccesses) DeleteUserdata() {}
 func (user *UserDataAccesses) UpdateUserdata() {}
+*/

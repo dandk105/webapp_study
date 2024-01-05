@@ -1,4 +1,4 @@
-package internal
+package server
 
 import (
 	"github.com/rs/cors"
@@ -14,6 +14,6 @@ func CreateHandler() *http.Handler {
 		Debug:          true,
 	})
 
-	handler := c.Handler(mux)
+	handler := c.Handler(r)
 	return &handler
 }

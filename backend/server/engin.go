@@ -1,4 +1,4 @@
-package internal
+package server
 
 import (
 	"log"
@@ -19,7 +19,7 @@ func newServerEnvConfig() *serverEnvs {
 	if e != false || host == "" {
 		host = ":"
 	}
-	addr := port + host
+	addr := host + port
 	log.Printf("Create Server Addr: %s", addr)
 
 	return &serverEnvs{serverAddr: addr}
@@ -27,9 +27,9 @@ func newServerEnvConfig() *serverEnvs {
 
 func CreateEngine() *http.Server {
 	env := newServerEnvConfig()
-	handler := newHandlers()
+	handler := CreateHandler()
 	return &http.Server{
 		Addr:    env.serverAddr,
-		Handler: handler,
+		Handler: *handler,
 	}
 }
