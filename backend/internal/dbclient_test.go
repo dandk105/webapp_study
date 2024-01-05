@@ -1,4 +1,4 @@
-package db
+package internal
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var existsEnvs = &Envs{DbUser: "myuser", DbName: "mydatabase", DbPassword: "mypassword", DbHost: "localhost"}
-var defaultEnvs = &Envs{DbUser: "default", DbName: "default", DbPassword: "default", DbHost: "localhost"}
+var existsEnvs = &dbEnvs{dbUser: "myuser", dbName: "mydatabase", dbPassword: "mypassword", dbHost: "localhost"}
+var defaultEnvs = &dbEnvs{dbUser: "default", dbName: "default", dbPassword: "default", dbHost: "localhost"}
 
 func SetupExistsEnv() {
 	u := "myuser"
@@ -36,34 +36,32 @@ func TestNewDBConfigEnvs(t *testing.T) {
 	SetupExistsEnv()
 	tc := *existsEnvs
 
-	a := Envs{}
-	a = *NewDBConfigEnvs()
+	a := *createDBConfigEnvs()
 
-	assert.Equal(t, tc.DbUser, a.DbUser)
-	assert.Equal(t, tc.DbName, a.DbName)
-	assert.Equal(t, tc.DbPassword, a.DbPassword)
-	assert.Equal(t, tc.DbHost, a.DbHost)
+	assert.Equal(t, tc.dbUser, a.dbUser)
+	assert.Equal(t, tc.dbName, a.dbName)
+	assert.Equal(t, tc.dbPassword, a.dbPassword)
+	assert.Equal(t, tc.dbHost, a.dbHost)
 }
 
 func TestEmptyNewDBConfigEnvs(t *testing.T) {
 	SetupEmptyEnv()
 	tc := *defaultEnvs
 
-	a := Envs{}
-	a = *NewDBConfigEnvs()
+	a := *createDBConfigEnvs()
 
-	assert.Equal(t, tc.DbUser, a.DbUser)
-	assert.Equal(t, tc.DbName, a.DbName)
-	assert.Equal(t, tc.DbPassword, a.DbPassword)
-	assert.Equal(t, tc.DbHost, a.DbHost)
+	assert.Equal(t, tc.dbUser, a.dbUser)
+	assert.Equal(t, tc.dbName, a.dbName)
+	assert.Equal(t, tc.dbPassword, a.dbPassword)
+	assert.Equal(t, tc.dbHost, a.dbHost)
 }
 
 func TestNewDBSourceName(t *testing.T) {
 	SetupExistsEnv()
 	tc := *existsEnvs
-	d := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", tc.DbUser, tc.DbName, tc.DbPassword, tc.DbHost)
+	d := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", tc.dbUser, tc.dbName, tc.dbPassword, tc.dbHost)
 
-	name := CreateDataSourceName()
+	name := createDataSourceName()
 	dsn := name.DBSourceName
 
 	assert.Equal(t, d, dsn)
@@ -74,7 +72,7 @@ func TestNewDBSourceName(t *testing.T) {
 func TestCreateConnection(t *testing.T) {
 	SetupExistsEnv()
 
-	c := CreateDataSourceName()
+	c := createDataSourceName()
 	client := Client{}
 	// Databaseが起動している時にはエラーが発生しないが、
 	// Databaseが起動していない時は必ずエラーが発生する
@@ -86,7 +84,7 @@ func TestCreateConnection(t *testing.T) {
 // Databaseを起動していないといけない
 func TestSetDatabaseClient(t *testing.T) {
 	SetupExistsEnv()
-	a := SetDatabaseClient()
+	a := CreateDatabaseClient()
 
 	assert.NotNil(t, a)
 }

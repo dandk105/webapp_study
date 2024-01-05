@@ -1,4 +1,4 @@
-package handlers
+package usecase
 
 import (
 	"encoding/json"
@@ -16,8 +16,9 @@ func DatabaseStatusCheckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 
-	client := db.Client{}
-	e := client.DataBaseConnection.Ping()
+	c := db.CreateDatabaseClient()
+	e := c.DataBaseConnection.Ping()
+
 	if e != nil {
 		// DBへの接続が成功した時はJSON形式でstatus:OK を返す
 		response := schma.StatusResponse{Status: "OK"}

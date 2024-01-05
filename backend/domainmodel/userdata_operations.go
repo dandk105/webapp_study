@@ -1,4 +1,4 @@
-package usecase
+package domainmodel
 
 import (
 	"context"
@@ -14,7 +14,7 @@ type UserDataAccesses struct {
 }
 
 func (user *UserDataAccesses) GetUserdata() *schema.User{
-	user.client = dbclient.SetDatabaseClient()
+	user.client = dbclient.CreateDatabaseClient()
 	db := user.client.DataBaseConnection
 	rows, e := db.Query("SELECT * FROM users where id = %d", user.schema.Id)
 	if e != nil {
@@ -25,7 +25,7 @@ func (user *UserDataAccesses) GetUserdata() *schema.User{
 }
 
 func (user *UserDataAccesses) CreateUserdata() {
-	user.client = dbclient.SetDatabaseClient()
+	user.client = dbclient.CreateDatabaseClient()
 	db := user.client.DataBaseConnection
 	rows, e := db.Query("INSERT INTO users(%d,)", user.schema.Id)
 	if e != nil {

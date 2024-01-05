@@ -1,4 +1,4 @@
-package db
+package internal
 
 import (
 	"database/sql"
@@ -9,14 +9,14 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Envs struct {
-	DbUser     string
-	DbName     string
-	DbPassword string
-	DbHost     string
+type dbEnvs struct {
+	dbUser     string
+	dbName     string
+	dbPassword string
+	dbHost     string
 }
 
-func NewDBConfigEnvs() *Envs {
+func createDBConfigEnvs() *dbEnvs {
 
 	// WILL: いずれ共通化して読みやすい様にする
 	// 対象の環境変数が存在しているか判断して、存在している場合は何もせず、存在していない時にはデフォルトの値を入力する
@@ -37,17 +37,17 @@ func NewDBConfigEnvs() *Envs {
 		DatabaseHost = "localhost"
 	}
 
-	a := &Envs{
-		DbUser:     Username,
-		DbName:     DatabaseName,
-		DbPassword: DatabasePassword,
-		DbHost:     DatabaseHost,
+	a := &dbEnvs{
+		dbUser:     Username,
+		dbName:     DatabaseName,
+		dbPassword: DatabasePassword,
+		dbHost:     DatabaseHost,
 	}
 
 	// Passwordをそのまま標準出力させない為に、マスキングを行っている。
 	// なお、Passwordに空白の値が設定される事はなく、デフォルトの値か環境変数で設定された値のどちらかである
 	// TODO: 開発環境の時は、取得した設定の値を全て出力する様に切り替えたい
-	log.Printf("Create Config Struct of Database from Envs \n %s, %s, ***, %s \n", a.DbUser, a.DbName, a.DbHost)
+	log.Printf("Create Config Struct of Database from Envs \n %s, %s, ***, %s \n", a.dbUser, a.dbName, a.dbHost)
 
 	return a
 }
@@ -60,15 +60,18 @@ type DatabaseSourceConfig struct {
 
 // DataSourceNameを作成する関数
 // 引数を受け取らずにDatabaseSourceNameが設定された構造体を返却する
-func CreateDataSourceName() *DatabaseSourceConfig {
-	envs := NewDBConfigEnvs()
-	dsn := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", envs.DbUser, envs.DbName, envs.DbPassword, envs.DbHost)
+func createDataSourceName() *DatabaseSourceConfig {
+	envs := createDBConfigEnvs()
+	dsn := fmt.Sprintf(
+		"user=%s dbname=%s password=%s host=%s sslmode=disable",
+		envs.dbUser, envs.dbName, envs.dbPassword, envs.dbHost)
 
 	log.Printf("Set Dsn %s\n", dsn)
 	return &DatabaseSourceConfig{DBSourceName: dsn}
 }
 
-// DBの通信を担う構造体
+// Client
+// Databaseに関係するログと接続についてまとめている
 type Client struct {
 	// DBの接続についての設定は基本的にデフォルトで設定されている値が適応される
 	DataBaseConnection *sql.DB
@@ -108,10 +111,11 @@ func (client *Client) FatalSQLF(err error) {
 	client.Log.Fatalf("SQL Error: %v", err)
 }
 
-// SetDatabaseClient 初期化された構造体を返却する関数
-// aa
-func SetDatabaseClient() *Client {
-	conf := CreateDataSourceName()
+// CreateDatabaseClient 初期化されたClient構造体を返却する関数
+// ここで提供されるClient構造体はDBの接続が確立されていて、かつLoggerが専用に設定されているものである
+// DBの接続が何らかの理由で失敗した場合は、OS.Exit(1)のシグナルを返却する
+func CreateDatabaseClient() *Client {
+	conf := createDataSourceName()
 	client := Client{}
 	client.SetDataBaseClientLogger()
 	err := client.CreateConnection(conf.DBSourceName)
