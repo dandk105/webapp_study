@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -22,22 +21,6 @@ type User struct {
 	ID       string
 	Name     string
 	Birthday time.Time
-}
-
-// 予約システムの部屋情報を格納する構造体
-type Room struct {
-	ID       string
-	Name     string
-	Capacity int
-}
-
-// 予約システムの予約情報を格納する構造体
-type Reservation struct {
-	ID        string
-	UserID    string
-	RoomID    string
-	StartTime time.Time
-	EndTime   time.Time
 }
 
 // DBのクライアント情報を格納する構造体
@@ -60,7 +43,7 @@ func main() {
 
 	HandlersDescription := map[string]string{
 		"users":    "/api/users",
-		"status":   "/api/status",
+		"dbstatus": "/api/dbstatus",
 		"userData": "/api/userdata",
 	}
 
@@ -68,7 +51,7 @@ func main() {
 	mux.HandleFunc(HandlersDescription["users"], func(w http.ResponseWriter, r *http.Request) {
 		getUserslistHandler(w, r, db)
 	})
-	mux.HandleFunc(HandlersDescription["status"], handlers.DatabaseStatusCheckHandler)
+	mux.HandleFunc(HandlersDescription["dbstatus"], handlers.DatabaseStatusCheckHandler)
 	mux.HandleFunc(HandlersDescription["userData"], func(w http.ResponseWriter, r *http.Request) {
 		getUserDataHandler(w, r, db)
 	})
@@ -236,19 +219,4 @@ func getUserDataHandler(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		// レスポンスを返す
 		w.Write(jsonresponse)
 	}
-}
-
-// リクエストボディの要素を全て読み込む関数
-func readRequestBody(r *http.Request) (string, error) {
-	reqBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		log.Print(err)
-		return "", err
-	}
-	// リクエストボディを文字列に変換
-	// リクエストボディのそのまま中身を文字列にするということは
-	// multi-part/form-dataのような形式のリクエストボディを崩してしまうのではないかと思う
-	reqBodyString := string(reqBody)
-	log.Printf("Read Request body: %s", reqBodyString)
-	return reqBodyString, nil
 }

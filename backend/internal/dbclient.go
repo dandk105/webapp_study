@@ -108,6 +108,8 @@ func (client *Client) FatalSQLF(err error) {
 	client.Log.Fatalf("SQL Error: %v", err)
 }
 
+// SetDatabaseClient 初期化された構造体を返却する関数
+// aa
 func SetDatabaseClient() *Client {
 	conf := CreateDataSourceName()
 	client := Client{}
