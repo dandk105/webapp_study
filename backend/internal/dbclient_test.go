@@ -76,7 +76,7 @@ func TestCreateConnection(t *testing.T) {
 	client := Client{}
 	// Databaseが起動している時にはエラーが発生しないが、
 	// Databaseが起動していない時は必ずエラーが発生する
-	e := client.CreateConnection(c.DBSourceName)
+	e := client.createConnection(c.DBSourceName)
 	assert.NoError(t, e)
 }
 
@@ -84,7 +84,7 @@ func TestCreateConnection(t *testing.T) {
 // Databaseを起動していないといけない
 func TestSetDatabaseClient(t *testing.T) {
 	SetupExistsEnv()
-	a := CreateDatabaseClient()
+	a := CreateConnectedDatabaseClient()
 
 	assert.NotNil(t, a)
 }

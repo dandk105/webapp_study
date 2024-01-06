@@ -11,14 +11,14 @@ type serverEnvs struct {
 }
 
 func newServerEnvConfig() *serverEnvs {
-	port, e := os.LookupEnv("PORT")
-	if e != false || port == "" {
-		port = "5001"
+	defaultEnv := &serverEnvs{serverAddr: ":5001"}
+	port := os.Getenv("PORT")
+	host := os.Getenv("HOST")
+	if port == "" || host == "" {
+		log.Printf("Create Server Addr: %s", defaultEnv.serverAddr)
+		return defaultEnv
 	}
-	host, e := os.LookupEnv("HOST")
-	if e != false || host == "" {
-		host = ":"
-	}
+
 	addr := host + port
 	log.Printf("Create Server Addr: %s", addr)
 

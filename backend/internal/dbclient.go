@@ -2,6 +2,7 @@ package internal
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -23,21 +24,16 @@ func createDBConfigEnvs() *dbEnvs {
 	// envsKye = {"ENV_KEY":"DB_USER","DEFAULT_KEY": "default"}
 	//
 	// for i range envsKye {res, e := os.lookupEnv(i) if !e || res == ""{ res = default["i"] }}
-	Username, exists := os.LookupEnv("DB_USER")
-	if !exists || Username == "" {
-		Username = "default"
-	}
-	DatabaseName, exists := os.LookupEnv("DB_NAME")
-	if !exists || DatabaseName == "" {
-		DatabaseName = "default"
-	}
-	DatabasePassword, exists := os.LookupEnv("DB_PASSWORD")
-	if !exists || DatabasePassword == "" {
-		DatabasePassword = "default"
-	}
-	DatabaseHost, exists := os.LookupEnv("DB_HOST")
-	if !exists || DatabaseHost == "" {
-		DatabaseHost = "localhost"
+	d := &dbEnvs{dbUser: "default", dbName: "default", dbPassword: "default", dbHost: "localhost"}
+	Username := os.Getenv("DB_USER")
+	DatabaseName := os.Getenv("DB_NAME")
+	DatabasePassword := os.Getenv("DB_PASSWORD")
+	DatabaseHost := os.Getenv("DB_HOST")
+
+	// Think: どれか一つでも空だった場合　という風に変更できないかな
+	if Username == "" || DatabaseName == "" || DatabasePassword == "" || DatabaseHost == "" {
+		log.Printf("Create Config Struct of Database from Envs \n %s, %s, ***, %s \n", d.dbUser, d.dbName, d.dbHost)
+		return d
 	}
 
 	a := &dbEnvs{
@@ -66,8 +62,8 @@ type DatabaseSourceConfig struct {
 func createDataSourceName() *DatabaseSourceConfig {
 	envs := createDBConfigEnvs()
 	dsn := fmt.Sprintf(
-		"user=%s dbname=%s password=%s host=%s sslmode=disable",
-		envs.dbUser, envs.dbName, envs.dbPassword, envs.dbHost)
+		"user=%s dbname=%s password=*** host=%s sslmode=disable",
+		envs.dbUser, envs.dbName, envs.dbHost)
 
 	log.Printf("Set Dsn %s\n", dsn)
 	return &DatabaseSourceConfig{DBSourceName: dsn}
@@ -81,10 +77,10 @@ type Client struct {
 	Log                *log.Logger
 }
 
-// CreateConnection Postgresへの接続を確保する為に使用されるメソッド
+// createConnection Postgresへの接続を確保する為に使用されるメソッド
 // 接続が成功した場合には、DatabaseClientの接続を上書きする
 // dsn string DataSourceNameの略、Databaseへ接続する際の名前を受け取る
-func (client *Client) CreateConnection(dsn string) error {
+func (client *Client) createConnection(dsn string) error {
 	// postgresのみを対象としているためそれ以外のドライバーの事は考慮していない
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -106,17 +102,6 @@ func (client *Client) CreateConnection(dsn string) error {
 	return nil
 }
 
-func (client *Client) CheckConnection() bool {
-	e := client.DataBaseConnection.Ping()
-	if e == nil {
-		log.Print("Success DB Ping Connection")
-		return true
-	} else {
-		log.Printf("Failed DB Ping Connection")
-		return false
-	}
-}
-
 func (client *Client) SetDataBaseClientLogger() {
 	client.Log = log.New(os.Stdout, "DBClient: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
@@ -125,21 +110,20 @@ func (client *Client) FatalSQLF(err error) {
 	client.Log.Fatalf("SQL Error: %v", err)
 }
 
-// CreateDatabaseClient 初期化されたClient構造体を返却する関数
+// CreateConnectedDatabaseClient 初期化されたClient構造体を返却する関数
 // ここで提供されるClient構造体はDBの接続が確立されていて、かつLoggerが専用に設定されているものである
 // DBの接続が何らかの理由で失敗した場合は、OS.Exit(1)のシグナルを返却する
-func CreateDatabaseClient() *Client {
+func CreateConnectedDatabaseClient() (*Client, error) {
 	conf := createDataSourceName()
 	client := Client{}
-	client.SetDataBaseClientLogger()
-	err := client.CreateConnection(conf.DBSourceName)
+	err := client.createConnection(conf.DBSourceName)
 
 	if err != nil {
-		log.Fatalf("Failed Creating of Database Client\n")
+		return nil, errors.New("Failed Creating of Database Client")
 	}
 
 	// TODO:必ず返り値にDBClient構造体を返却する様にする
 	// 現在はこの関数内でハンドリングが出来ていないため、依存している関数で何らかの
 	// panicが発生した際に処理する事ができず、DatabaseClientが必ず帰ってくる信用がないため
-	return &client
+	return &client, nil
 }

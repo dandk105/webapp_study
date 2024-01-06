@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	db "github.com/dandk105/webapp_study/backend/internal"
+	domain "github.com/dandk105/webapp_study/backend/domainmodel"
 	schma "github.com/dandk105/webapp_study/backend/schema"
 )
 
@@ -16,10 +16,14 @@ func DatabaseStatusCheckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("%s request: %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 
-	c := db.CreateDatabaseClient()
-	e := c.DataBaseConnection.Ping()
+	result := domain.CheckDatabaseConnection()
 
-	if e != nil {
+	if result == false {
+		// ここユースケースで失敗した時のログという風に切り出したい
+		// 標準出力にエラーとしてログを出したい
+		log.Printf("Cannot Create DB Connection on Handler")
+		http.Error(w, "Failed DB Connection Check", http.StatusInternalServerError)
+	} else {
 		// DBへの接続が成功した時はJSON形式でstatus:OK を返す
 		response := schma.StatusResponse{Status: "OK"}
 		jsonResponse, err := json.Marshal(response)
@@ -31,9 +35,5 @@ func DatabaseStatusCheckHandler(w http.ResponseWriter, r *http.Request) {
 		// レスポンスを返す
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonResponse)
-	} else {
-		log.Printf("Cannot Create DB Connection on Handler")
-		http.Error(w, e.Error(), http.StatusInternalServerError)
 	}
-
 }

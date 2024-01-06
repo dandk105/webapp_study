@@ -17,5 +17,6 @@ func setupRouter() *http.ServeMux {
 	mux.HandleFunc(handlersDescription["dbstatus"], handlers.DatabaseStatusCheckHandler)
 	mux.HandleFunc(handlersDescription["userData"], handlers.DatabaseStatusCheckHandler)
 
+	// 登録されているハンドラーの一覧を標準出力として出力したい
 	return mux
 }
