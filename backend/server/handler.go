@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/rs/cors"
+	"log"
 	"net/http"
 )
 
@@ -13,6 +14,8 @@ func CreateHandler() *http.Handler {
 		AllowedOrigins: []string{"http://localhost:*"},
 		Debug:          true,
 	})
+
+	log.Printf("Create Cors handler")
 
 	handler := c.Handler(r)
 	return &handler

@@ -1,11 +1,11 @@
-package internal
+package databaseClientConfig
 
 import (
+	"context"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 var existsEnvs = &dbEnvs{dbUser: "myuser", dbName: "mydatabase", dbPassword: "mypassword", dbHost: "localhost"}
@@ -61,38 +61,9 @@ func TestNewDBSourceName(t *testing.T) {
 	tc := *existsEnvs
 	d := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", tc.dbUser, tc.dbName, tc.dbPassword, tc.dbHost)
 
-	name := createDataSourceName()
-	dsn := name.DBSourceName
+	cb := context.Background()
+	c := createDataSourceName(cb)
+	v := c.Value("DataSourceName")
 
-	assert.Equal(t, d, dsn)
-}
-
-// TODO: Flakyなテストではなく必ず成功する様にテストを書く
-
-func TestCreateConnection(t *testing.T) {
-	SetupExistsEnv()
-
-	c := createDataSourceName()
-	client := Client{}
-	// Databaseが起動している時にはエラーが発生しないが、
-	// Databaseが起動していない時は必ずエラーが発生する
-	e := client.createConnection(c.DBSourceName)
-	assert.NoError(t, e)
-}
-
-// TODO: Flakyを直す
-// Databaseを起動していないといけない
-func TestSetDatabaseClient(t *testing.T) {
-	SetupExistsEnv()
-	a, _ := CreateConnectedDatabaseClient()
-
-	assert.NotNil(t, a)
-}
-
-func TestSetDBClientLogger(t *testing.T) {
-	// Set up test environment variables
-	dbc := &Client{}
-	dbc.SetDataBaseClientLogger()
-	assert.NotNil(t, dbc.Log)
-	dbc.Log.Printf("Sucess")
+	assert.Equal(t, d, v)
 }

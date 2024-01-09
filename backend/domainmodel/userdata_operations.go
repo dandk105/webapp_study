@@ -13,16 +13,17 @@ type UserDataAccesses struct {
 	ctx    context.Context
 }
 
-/*
-func (user *UserDataAccesses) GetUserdata() *schema.User{
-	user.client = dbclient.CreateDatabaseClient()
+func (user *UserDataAccesses) GetUserdata() *schema.User {
+	user.client, e = dbclient.CreateConnectedDatabaseClient()
+	if e != nil {
+	}
 	db := user.client.DataBaseConnection
 	rows, e := db.Query("SELECT * FROM users where id = %d", user.schema.Id)
 	if e != nil {
 		user.client.FatalSQLF(e)
 	}
-	 := rows.Scan(&user.schema.Id, &user.schema.Name, &user.schema.Birthday)
-	return
+	res := rows.Scan(&user.schema.Id, &user.schema.Name, &user.schema.Birthday)
+	return res
 }
 
 func (user *UserDataAccesses) CreateUserdata() {
@@ -35,4 +36,3 @@ func (user *UserDataAccesses) CreateUserdata() {
 }
 func (user *UserDataAccesses) DeleteUserdata() {}
 func (user *UserDataAccesses) UpdateUserdata() {}
-*/

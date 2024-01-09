@@ -60,6 +60,7 @@ type DatabaseSourceConfig struct {
 // DataSourceNameを作成する関数
 // 引数を受け取らずにDatabaseSourceNameが設定された構造体を返却する
 func createDataSourceName() *DatabaseSourceConfig {
+	// createDBc
 	envs := createDBConfigEnvs()
 	dsn := fmt.Sprintf(
 		"user=%s dbname=%s password=*** host=%s sslmode=disable",
@@ -93,7 +94,7 @@ func (client *Client) createConnection(dsn string) error {
 	if pingErr == nil {
 		log.Print("Success DB Ping Connection")
 	} else {
-		log.Printf("Failed DB Ping Connection")
+		log.Printf("Failed DB Ping Connection　%v", pingErr)
 		return pingErr
 	}
 	// 処理が最後まで問題なく実行された場合に構造体のDatabaseConnectionを
@@ -112,8 +113,10 @@ func (client *Client) FatalSQLF(err error) {
 
 // CreateConnectedDatabaseClient 初期化されたClient構造体を返却する関数
 // ここで提供されるClient構造体はDBの接続が確立されていて、かつLoggerが専用に設定されているものである
-// DBの接続が何らかの理由で失敗した場合は、OS.Exit(1)のシグナルを返却する
+// DBの接続が何らかの理由で失敗した場合は、Errorを返却する
 func CreateConnectedDatabaseClient() (*Client, error) {
+	// createDatasourceName()は実質、createDBConfigsも兼ねているわけだが、
+	// 少なくともこのコネクション作成済の関数に対して、毎度呼ばれるのは冗長である
 	conf := createDataSourceName()
 	client := Client{}
 	err := client.createConnection(conf.DBSourceName)
