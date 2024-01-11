@@ -40,7 +40,7 @@ tags: [_posts,description,project-study,memo]
 発展として
 
 <h2>実践</h2>
-![サーバーの構成について](/assets/img/RealServerStruct.png)
+![サーバーの構成について]({{ site.baseurl }}/assets/img/RealServerStruct.png)
 
 
 
