@@ -40,7 +40,7 @@ tags: [_posts,description,project-study,project-planning]
 発展として
 
 <h2>実践</h2>
-![Product計画書について](/assets/img/ProductPlanning.png)
+![Product計画書について]({{ site.baseurl }}/assets/img/ProductPlanning.png)
 
 
 

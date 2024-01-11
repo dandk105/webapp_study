@@ -40,7 +40,7 @@ tags: [_posts,description,project-study]
 発展として
 
 <h2>実践</h2>
-![project宣言](/assets/img/ProjectDescribe.png)
+![project宣言]({{ site.baseurl }}/assets/img/ProjectDescribe.png)
 
 
 
