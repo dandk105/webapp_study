@@ -8,10 +8,24 @@
 
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue'
+const props = defineProps({
+  user_name: {
+    type: String,
+    required: true
+  },
+  user_id: {
+    type: Number,
+    required: true
+  },
+  user_birthday: {
+    type: Date,
+    required: false
+  }
+})
 
 // propsでuser_nameまたは、idを受け取る様にして、その値で
 // ユーザーの情報を取得するようにする
-const users_list_url:string = import.meta.env.VITE_BASE_API_URL+'/api/users'
+const users_list_url:string = import.meta.env.VITE_BASE_API_URL+'/api/userdata'
 // 実際に返却されるレスポンス値
 //users: %s[{a938f06c-3f90-4dc2-97df-0f8dd456eba9 Alice 1990-01-01 00:00:00 +0000 +0000} {ed99e003-349e-42b7-ae49-74594c7faa29 Bob 1992-05-15 00:00:00 +0000 +0000} {fc73ce46-bbda-476b-b991-3c4fe63e4af5 Charlie 1988-11-23 00:00:00 +0000 +0000}]
 const accounts = ref<any>([])
