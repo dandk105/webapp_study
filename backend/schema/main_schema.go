@@ -9,23 +9,23 @@ import (
 // 予約システムのユーザー情報を格納する構造体
 type User struct {
 	// IDはUUIDになるから、stringでまとめてしまうのはいささか乱雑な気がする
-	ID       string
+	Id       string
 	Name     string
 	Birthday time.Time
 }
 
 // 予約システムの部屋情報を格納する構造体
 type Room struct {
-	ID       string
+	Id       string
 	Name     string
 	Capacity int
 }
 
 // 予約システムの予約情報を格納する構造体
 type Reservation struct {
-	ID        string
-	UserID    string
-	RoomID    string
+	Id        string
+	UserId    string
+	RoomId    string
 	StartTime time.Time
 	EndTime   time.Time
 }
