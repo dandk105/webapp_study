@@ -8,7 +8,7 @@
 今回は、PostgreSQLを使用します。
 PostgreSQLの詳細については、[公式ドキュメント](https://www.postgresql.jp/document/12/html/index.html)を参照してください。
 
-### schemaについて
+### Table構造について
 このdiagarmは、[mermaid](https://mermaid-js.github.io/mermaid/#/)記法を使用しています。
 
 
@@ -18,7 +18,8 @@ erDiagram
     USERS {
         UUID id PK "UNIQUE NOT NULL "
         text name "min(1) , max(50)"
-        birth_day date
+        date birth_day
+        bool del_flg "NOT NULL"
     }
     RESERVATIONS 
     RESERVATIONS {
@@ -32,7 +33,15 @@ erDiagram
     ROOMS o|--o| RESERVATIONS : contains
     ROOMS{  
         UUID id PK "UNIQUE NOT NULL "
-        name text "NOT NULL"
-        capacity smallint "NOT NULL"
+        text name "NOT NULL"
+        smallint capacity "NOT NULL"
+    }
+    
+    HOTELS o|--o| ROOMS : contains
+    HOTELS {
+        UUID id PK "UNIQUE NOT NULL "
+        text name "NOT NULL"
+        text address "NOT NULL"
+        UUID room_id FK "NOT NULL"
     }
 ```
